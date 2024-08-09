@@ -68,7 +68,7 @@ export const MenuItems = [
 		selected: false,
 		children: [
 			{
-				path: "/dashboard",
+				path: "/dashboard/",
 				type: "link",
 				active: false,
 				selected: false,
