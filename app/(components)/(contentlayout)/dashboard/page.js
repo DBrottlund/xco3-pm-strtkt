@@ -1,9 +1,9 @@
 "use client";
-import { Dealsstatistics } from "@/shared/data/dashboards/crmdata";
+import { Dealsstatistics } from "@/shared/data/dashboarddata";
 import Seo from "@/shared/layout-components/seo/seo";
 import Link from "next/link";
 import React, { Fragment } from "react";
-import * as Crmdata from "@/shared/data/dashboards/crmdata";
+import * as Crmdata from "@/shared/data/dashboarddata";
 import dynamic from "next/dynamic";
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,

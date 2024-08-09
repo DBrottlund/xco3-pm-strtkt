@@ -43,7 +43,7 @@ export default function Home() {
 
 	const router = useRouter();
 	const RouteChange = () => {
-		let path = "/dashboards/crm";
+		let path = "/dashboard";
 		router.push(path);
 	};
 	return (
@@ -56,7 +56,7 @@ export default function Home() {
 								<div className="xxl:col-span-4 xl:col-span-4 lg:col-span-4 md:col-span-3 sm:col-span-2"></div>
 								<div className="xxl:col-span-4 xl:col-span-4 lg:col-span-4 md:col-span-6 sm:col-span-8 col-span-12">
 									<div className="my-[2.5rem] flex justify-center">
-										<Link href="/dashboards/crm/">
+										<Link href="/dashboard/">
 											<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-logo.png`} alt="logo" className="desktop-logo" />
 											<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-dark.png`} alt="logo" className="desktop-dark" />
 										</Link>

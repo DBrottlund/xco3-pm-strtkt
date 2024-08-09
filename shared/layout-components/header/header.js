@@ -397,7 +397,7 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 						<div className="header-content-left">
 							<div className="header-element">
 								<div className="horizontal-logo">
-									<Link href="/dashboards/crm/" className="header-logo">
+									<Link href="/dashboard/" className="header-logo">
 										<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-logo.png`} alt="logo" className="desktop-logo" />
 										<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/toggle-logo.png`} alt="logo" className="toggle-logo" />
 										<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-dark.png`} alt="logo" className="desktop-dark" />
