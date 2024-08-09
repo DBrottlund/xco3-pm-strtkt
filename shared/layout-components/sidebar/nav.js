@@ -60,75 +60,49 @@ export const MenuItems = [
 		menutitle: "MAIN",
 	},
 	{
-		icon: DashboardIcon,
-		badgetxt: badge,
-		title: "Dashboards",
-		type: "sub",
+		icon: ChartsIcon,
+		badgetxt: badge2,
+		path: "/dashboard/",
+		type: "link",
 		active: false,
-		selected: false,
-		children: [
-			{
-				path: "/dashboard/",
-				type: "link",
-				active: false,
-				selected: false,
-				dirchange: false, 
-				title: "CRM",
-			},
-		],
+		selected: true,
+		dirchange: false, 
+		title: "Xco3 PM Dashboard"
+}
+	,
+	{
+		icon: PagesIcon,
+		// badgetxt: badge,
+		title: "Priority & Status",
+		type: "sub",
+		path: "/priority-status/",
+		type: "link",
+		active: false,
+		selected: true,
+		dirchange: false, 
+		title: "Xco3 Priority & Status"
+	}
+	,
+	{
+		icon: TablesIcon,
+		// badgetxt: badge,
+		title: "Xco3 Ask AI",
+		path: "/ask-ai/",
+		type: "link",
+		active: false,
+		selected: true,
+		dirchange: false, 
 	},
 	{
-		menutitle: "WEB APPS",
-	},
-	{
-		icon: NestedmenuIcon,
-		title: "Nested Menu",
-		selected: false,
+		icon: UiElementsIcon,
+		// badgetxt: badge,
+		path: "/integrations/",
+		type: "link",
 		active: false,
-		type: "sub",
-		children: [
-			{
-				path: "",
-				title: "Nested-1",
-				type: "empty",
-				active: false,
-				selected: false,
-				dirchange: false, 
-			},
+		selected: true,
+		dirchange: false, 
+		title: "Xco3 Integrations",
+	}
 
-			{
-				title: "Nested-2",
-				type: "sub",
-				active: false,
-				selected: false,
-				dirchange: false, 
-				children: [
-					{
-						path: "",
-						type: "empty",
-						active: false,
-						selected: false,
-						dirchange: false, 
-						title: "Nested-2-1",
-					},
-					{
-						path: "",
-						type: "empty",
-						ctive: false,
-						selected: false,
-						dirchange: false, 
-						title: "Nested-2-2",
-					},
-					{
-						path: "",
-						type: "empty",
-						active: false,
-						selected: false,
-						dirchange: false, 
-						title: "Nested-2-3",
-					},
-				],
-			},
-		],
-	},
+
 ];
