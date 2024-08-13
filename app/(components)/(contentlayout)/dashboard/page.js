@@ -38,7 +38,7 @@ const Projects = () => {
 			<Seo title={"Xco3 Requests"} />
 			<Pageheader currentpage="Requests" activepage="Dashboard" mainpage="Projects" />
 			
-					<div className="grid grid-cols-12 gap-x-6">
+					{/* <div className="grid grid-cols-12 gap-x-6">
 					<div className="xxl:col-span-4 col-span-12">
 							<div className="grid grid-cols-12 gap-x-6">								
 							<div className="xl:col-span-12 col-span-12">
@@ -139,7 +139,7 @@ const Projects = () => {
 							</div>
 						</div>
 
-					</div>
+					</div> */}
 	
 
 					<div className="box-body space-y-3">
