@@ -6,11 +6,16 @@ import { connect } from "react-redux";
 import store from "@/shared/redux/store";
 import Modalsearch from "../modal-search/modalsearch";
 import { basePath } from "@/next.config";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import AuthButton from "@/app/api/auth/AuthButton.client";
+import InitialsAvatar from 'react-initials-avatar';
+import 'react-initials-avatar/lib/ReactInitialsAvatar.css';
 
 const Header = ({ local_varaiable, ThemeChanger }) => {
+	const { data: session, status } = useSession();
 
-	const [passwordshow1, setpasswordshow1] = useState(false);
+	// const [passwordshow1, setpasswordshow1] = useState(false);
 
 	const data=  <span className="font-[600] py-[0.25rem] px-[0.45rem] rounded-[0.25rem] bg-pinkmain/10 text-pinkmain text-[0.625rem]">Free shipping</span>;
 
@@ -402,14 +407,28 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 							</div> */}
 
 							<div className="header-element md:!px-[0.65rem] px-2 hs-dropdown !items-center ti-dropdown [--placement:bottom-left]">
-
-								<button id="dropdown-profile" type="button"
-									className="hs-dropdown-toggle ti-dropdown-toggle !gap-2 !p-0 flex-shrink-0 sm:me-2 me-0 !rounded-full !shadow-none text-xs align-middle !border-0 !shadow-transparent ">
+							{status === "authenticated" ? (<InitialsAvatar className="hs-dropdown-toggle initial-avatar ti-dropdown-toggle bg-blue" id="dropdown-profile" name={session.user.name} />) : (<button id="dropdown-profile" type="button"
+									className="hs-dropdown-toggle ti-dropdown-toggle">
 									<img className="inline-block rounded-full " src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/faces/9.jpg`} width="32" height="32" alt="Image Description" />
-								</button>
+								</button>) }
+							
 								<div className="md:block hidden dropdown-profile">
-									<p className="font-semibold mb-0 leading-none text-[#536485] text-[0.813rem] ">Derek Brottlund</p>
-									<span className="opacity-[0.7] font-normal text-[#536485] block text-[0.6875rem] ">Project Manger</span>
+									 {status === "authenticated" ? (
+                    <>
+                      <p className="font-semibold mb-0 leading-none text-[#536485] text-[0.813rem] ">
+                        {session.user.name}
+					
+                      </p>
+                      <span className="opacity-[0.7] font-normal text-[#536485] block text-[0.6875rem] ">
+                        {/* {session.user.role } */}
+						Project Manager
+                      </span>
+                    </>
+                  ) : (
+                    <p className="font-semibold mb-0 leading-none text-[#536485] text-[0.813rem] ">
+                      Loading...
+                    </p>
+                  )}
 								</div>
 								<div
 									className="hs-dropdown-menu ti-dropdown-menu !-mt-3 border-0 w-[11rem] !p-0 border-defaultborder hidden main-header-dropdown  pt-0 overflow-hidden header-profile-dropdown dropdown-menu-end"
@@ -435,8 +454,7 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 											className="ti ti-wallet text-[1.125rem] me-2 opacity-[0.7 !inline-flex"></i>Bal: $7,12,950</Link></li>
 										<li><Link className="w-full ti-dropdown-item !text-[0.8125rem] !p-[0.65rem] !gap-x-0 !inline-flex" href="#!"><i
 											className="ti ti-headset text-[1.125rem] me-2 opacity-[0.7] !inline-flex"></i>Support</Link></li> */}
-										<li><Link className="w-full ti-dropdown-item !text-[0.8125rem] !p-[0.65rem] !gap-x-0 !inline-flex" href="/logout"><i
-											className="ti ti-logout text-[1.125rem] me-2 opacity-[0.7] !inline-flex"></i>Log Out</Link></li>
+										<li><AuthButton /></li>
 									</ul>
 								</div>
 							</div>

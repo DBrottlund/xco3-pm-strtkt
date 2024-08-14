@@ -8,9 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@neondatabase/serverless':
+        specifier: ^0.9.4
+        version: 0.9.4
       '@next-auth/prisma-adapter':
         specifier: ^1.0.7
         version: 1.0.7(@prisma/client@5.18.0(prisma@5.18.0))(next-auth@5.0.0-beta.20(next@14.2.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.77.8))(react@18.3.1))
+      '@prisma/adapter-neon':
+        specifier: ^5.18.0
+        version: 5.18.0(@neondatabase/serverless@0.9.4)
       '@prisma/client':
         specifier: ^5.18.0
         version: 5.18.0(prisma@5.18.0)
@@ -23,6 +29,12 @@ importers:
       '@tailwindcss/forms':
         specifier: ^0.5.7
         version: 0.5.7(tailwindcss@3.4.9)
+      '@tanstack/react-table':
+        specifier: ^8.20.1
+        version: 8.20.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      ag-grid-react:
+        specifier: ^32.1.0
+        version: 32.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       apexcharts:
         specifier: ^3.49.1
         version: 3.52.0
@@ -68,6 +80,9 @@ importers:
       react-icons:
         specifier: ^5.2.1
         version: 5.2.1(react@18.3.1)
+      react-initials-avatar:
+        specifier: ^1.1.2
+        version: 1.1.2(react@18.3.1)
       react-redux:
         specifier: ^8.1.3
         version: 8.1.3(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(redux@4.2.1)
@@ -376,6 +391,9 @@ packages:
   '@jridgewell/trace-mapping@0.3.25':
     resolution: {integrity: sha512-vNk6aEwybGtawWmy/PzwnGDOjCkLWSD2wqvjGGAgOAwCGWySYXfYoxt00IJkTF+8Lb57DwOb3Aa0o9CApepiYQ==}
 
+  '@neondatabase/serverless@0.9.4':
+    resolution: {integrity: sha512-D0AXgJh6xkf+XTlsO7iwE2Q1w8981E1cLCPAALMU2YKtkF/1SF6BiAzYARZFYo175ON+b1RNIy9TdSFHm5nteg==}
+
   '@next-auth/prisma-adapter@1.0.7':
     resolution: {integrity: sha512-Cdko4KfcmKjsyHFrWwZ//lfLUbcLqlyFqjd/nYE2m3aZ7tjMNUjpks47iw7NTCnXf+5UWz5Ypyt1dSs1EP5QJw==}
     peerDependencies:
@@ -461,6 +479,11 @@ packages:
   '@popperjs/core@2.11.8':
     resolution: {integrity: sha512-P1st0aksCrn9sGZhp8GMYwBnQsbvAWsZAX44oXNNvLHGqAOcoVxmjZiohstwQ7SqKnbR47akdNi+uleWD8+g6A==}
 
+  '@prisma/adapter-neon@5.18.0':
+    resolution: {integrity: sha512-QdHBzBHtcy/3TF4/htklmWq5T8YqLJUcdkzrMEhQXRPLAR4LKzsjtsbzeyBEpyBm+kf5UItcp4XD0z4SuRWIMQ==}
+    peerDependencies:
+      '@neondatabase/serverless': ^0.6.0 || ^0.7.0 || ^0.8.0 || ^0.9.0
+
   '@prisma/client@5.18.0':
     resolution: {integrity: sha512-BWivkLh+af1kqC89zCJYkHsRcyWsM8/JHpsDMM76DjP3ZdEquJhXa4IeX+HkWPnwJ5FanxEJFZZDTWiDs/Kvyw==}
     engines: {node: '>=16.13'}
@@ -472,6 +495,9 @@ packages:
 
   '@prisma/debug@5.18.0':
     resolution: {integrity: sha512-f+ZvpTLidSo3LMJxQPVgAxdAjzv5OpzAo/eF8qZqbwvgi2F5cTOI9XCpdRzJYA0iGfajjwjOKKrVq64vkxEfUw==}
+
+  '@prisma/driver-adapter-utils@5.18.0':
+    resolution: {integrity: sha512-9WLOLcOOvYcxE4bzIL15XsJm9L5SaOX98FCFDFT6+/nt0p9PcAzAbFTtitF7dLNKnYO5tiuOVHs+3VQIP2LN1w==}
 
   '@prisma/engines-version@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169':
     resolution: {integrity: sha512-a/+LpJj8vYU3nmtkg+N3X51ddbt35yYrRe8wqHTJtYQt7l1f8kjIBcCs6sHJvodW/EK5XGvboOiwm47fmNrbgg==}
@@ -571,11 +597,22 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || >= 3.0.0-alpha.1'
 
+  '@tanstack/react-table@8.20.1':
+    resolution: {integrity: sha512-PJK+07qbengObe5l7c8vCdtefXm8cyR4i078acWrHbdm8JKw1ES7YpmOtVt9ALUVEEFAHscdVpGRhRgikgFMbQ==}
+    engines: {node: '>=12'}
+    peerDependencies:
+      react: '>=16.8'
+      react-dom: '>=16.8'
+
   '@tanstack/react-virtual@3.8.6':
     resolution: {integrity: sha512-YcOQAxccjIqiC8cQ8QQiDU6F+JZtfpKNvYsw/ju5Q6S5/m9KDs5SaJvKz1kLj3RKNAOBMIFA9snN2MDmyT9lBQ==}
     peerDependencies:
       react: ^16.8.0 || ^17.0.0 || ^18.0.0
       react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
+
+  '@tanstack/table-core@8.20.1':
+    resolution: {integrity: sha512-5Ly5TIRHnWH7vSDell9B/OVyV380qqIJVg7H7R7jU4fPEmOD4smqAX7VRflpYI09srWR8aj5OLD2Ccs1pI5mTg==}
+    engines: {node: '>=12'}
 
   '@tanstack/virtual-core@3.8.6':
     resolution: {integrity: sha512-UJeU4SBrx3hqULNzJ3oC0kgJ5miIAg+FwomxMTlQNxob6ppTInifANHd9ukETvzdzxr6zt3CjQ0rttQpVjbt6Q==}
@@ -595,6 +632,9 @@ packages:
   '@types/node@22.2.0':
     resolution: {integrity: sha512-bm6EG6/pCpkxDf/0gDNDdtDILMOHgaQBVOJGdwsqClnxA3xL6jtMv76rLBc006RVMWbmaf0xbmom4Z/5o2nRkQ==}
 
+  '@types/pg@8.11.6':
+    resolution: {integrity: sha512-/2WmmBXHLsfRqzfHW7BNZ8SbYzE8OSk7i3WjFYvfgRHj7S1xj+16Je5fUKv3lVdVzk/zn9TXOqf+avFCFIE0yQ==}
+
   '@types/prop-types@15.7.12':
     resolution: {integrity: sha512-5zvhXYtRNRluoE/jAp4GVsSduVUzNWKkOZrCDBWYtE7biZywwdC2AcEzg+cSMLFRfVgeAFqpfNabiPjxFddV1Q==}
 
@@ -606,6 +646,18 @@ packages:
 
   '@yr/monotone-cubic-spline@1.0.3':
     resolution: {integrity: sha512-FQXkOta0XBSUPHndIKON2Y9JeQz5ZeMqLYZVVK93FliNBFm7LNMIZmY6FrMEB9XPcDbE2bekMbZD6kzDkxwYjA==}
+
+  ag-charts-types@10.1.0:
+    resolution: {integrity: sha512-pk9ft8hbgTXJ/thI/SEUR1BoauNplYExpcHh7tMOqVikoDsta1O15TB1ZL4XWnl4TPIzROBmONKsz7d8a2HBuQ==}
+
+  ag-grid-community@32.1.0:
+    resolution: {integrity: sha512-RVvkjRH61nuCXwIqTKQPqNbKR+8cGBKw7S1qmmMXsy0pCBAJaQn4kL3v31hKHxDtV4bPscBXLFKGnKzHuss0GQ==}
+
+  ag-grid-react@32.1.0:
+    resolution: {integrity: sha512-GDbtvU3aicSajWXWxvQio5ZaPqJDx2jzgRBKQf1RF1IVzL+XATDmLFNuMND0+wJ/VW/xUjBFjiq9W1fjXg/DCA==}
+    peerDependencies:
+      react: ^16.3.0 || ^17.0.0 || ^18.0.0
+      react-dom: ^16.3.0 || ^17.0.0 || ^18.0.0
 
   ansi-regex@5.0.1:
     resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
@@ -983,6 +1035,9 @@ packages:
     resolution: {integrity: sha512-RSn9F68PjH9HqtltsSnqYC1XXoWe9Bju5+213R98cNGttag9q9yAOTzdbsqvIa7aNm5WffBZFpWYr2aWrklWAw==}
     engines: {node: '>= 6'}
 
+  obuf@1.1.2:
+    resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
+
   package-json-from-dist@1.0.0:
     resolution: {integrity: sha512-dATvCeZN/8wQsGywez1mzHtTlP22H8OEfPrVMLNr4/eGa+ijtLn/6M5f0dY8UKNrC2O9UCU6SSoG3qRKnt7STw==}
 
@@ -996,6 +1051,21 @@ packages:
   path-scurry@1.11.1:
     resolution: {integrity: sha512-Xa4Nw17FS9ApQFJ9umLiJS4orGjm7ZzwUrwamcGQuHSzDyth9boKDaycYdDcZDuqYATXw4HFXgaqWTctW/v1HA==}
     engines: {node: '>=16 || 14 >=14.18'}
+
+  pg-int8@1.0.1:
+    resolution: {integrity: sha512-WCtabS6t3c8SkpDBUlb1kjOs7l66xsGdKpIPZsg4wR+B3+u9UAum2odSsF9tnvxg80h4ZxLWMy4pRjOsFIqQpw==}
+    engines: {node: '>=4.0.0'}
+
+  pg-numeric@1.0.2:
+    resolution: {integrity: sha512-BM/Thnrw5jm2kKLE5uJkXqqExRUY/toLHda65XgFTBTFYZyopbKjBe29Ii3RbkvlsMoFwD+tHeGaCjjv0gHlyw==}
+    engines: {node: '>=4'}
+
+  pg-protocol@1.6.1:
+    resolution: {integrity: sha512-jPIlvgoD63hrEuihvIg+tJhoGjUsLPn6poJY9N5CnlPd91c2T18T/9zBtLxZSb1EhYxBRoZJtzScCaWlYLtktg==}
+
+  pg-types@4.0.2:
+    resolution: {integrity: sha512-cRL3JpS3lKMGsKaWndugWQoLOCoP+Cic8oseVcbr0qhPzYD5DWXK+RZ9LY9wxRf7RQia4SCwQlXk0q6FCPrVng==}
+    engines: {node: '>=10'}
 
   picocolors@1.0.1:
     resolution: {integrity: sha512-anP1Z8qwhkbmu7MFP5iTt+wQKXgwzf7zTyGlcdzabySa9vd0Xt392U0rVmz9poOaBj0uHJKyyo9/upk0HrEQew==}
@@ -1063,6 +1133,25 @@ packages:
     resolution: {integrity: sha512-TesUflQ0WKZqAvg52PWL6kHgLKP6xB6heTOdoYM0Wt2UHyxNa4K25EZZMgKns3BH1RLVbZCREPpLY0rhnNoHVQ==}
     engines: {node: ^10 || ^12 || >=14}
 
+  postgres-array@3.0.2:
+    resolution: {integrity: sha512-6faShkdFugNQCLwucjPcY5ARoW1SlbnrZjmGl0IrrqewpvxvhSLHimCVzqeuULCbG0fQv7Dtk1yDbG3xv7Veog==}
+    engines: {node: '>=12'}
+
+  postgres-bytea@3.0.0:
+    resolution: {integrity: sha512-CNd4jim9RFPkObHSjVHlVrxoVQXz7quwNFpz7RY1okNNme49+sVyiTvTRobiLV548Hx/hb1BG+iE7h9493WzFw==}
+    engines: {node: '>= 6'}
+
+  postgres-date@2.1.0:
+    resolution: {integrity: sha512-K7Juri8gtgXVcDfZttFKVmhglp7epKb1K4pgrkLxehjqkrgPhfG6OO8LHLkfaqkbpjNRnra018XwAr1yQFWGcA==}
+    engines: {node: '>=12'}
+
+  postgres-interval@3.0.0:
+    resolution: {integrity: sha512-BSNDnbyZCXSxgA+1f5UU2GmwhoI0aU5yMxRGO8CdFEcY2BQF9xm/7MqKnYoM1nJDk8nONNWDk9WeSmePFhQdlw==}
+    engines: {node: '>=12'}
+
+  postgres-range@1.1.4:
+    resolution: {integrity: sha512-i/hbxIE9803Alj/6ytL7UHQxRvZkI9O4Sy+J3HGc4F4oo/2eQAjTSNJ0bfxyse3bH0nuVesCk+3IRLaMtG3H6w==}
+
   preact-render-to-string@5.2.3:
     resolution: {integrity: sha512-aPDxUn5o3GhWdtJtW0svRC2SS/l8D9MAgo2+AWml+BhDImb27ALf04Q2d+AHqUUOc6RdSXFIBVa2gxzgMKgtZA==}
     peerDependencies:
@@ -1107,6 +1196,12 @@ packages:
     resolution: {integrity: sha512-zdbW5GstTzXaVKvGSyTaBalt7HSfuK5ovrzlpyiWHAFXndXTdd/1hdDHI4xBM1Mn7YriT6aqESucFl9kEXzrdw==}
     peerDependencies:
       react: '*'
+
+  react-initials-avatar@1.1.2:
+    resolution: {integrity: sha512-B82hHH62m1KLtnfpcAV1/J9a0CeLvPR3Qn5AwPHS0sXDCqbcpQhQ8gecsFYz3ipLCS0ggZrW0U6Spk0yoqMf1g==}
+    engines: {node: '>=12.18.3'}
+    peerDependencies:
+      react: '>=16.8.0'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -1802,6 +1897,10 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.0
 
+  '@neondatabase/serverless@0.9.4':
+    dependencies:
+      '@types/pg': 8.11.6
+
   '@next-auth/prisma-adapter@1.0.7(@prisma/client@5.18.0(prisma@5.18.0))(next-auth@5.0.0-beta.20(next@14.2.4(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(sass@1.77.8))(react@18.3.1))':
     dependencies:
       '@prisma/client': 5.18.0(prisma@5.18.0)
@@ -1855,11 +1954,21 @@ snapshots:
 
   '@popperjs/core@2.11.8': {}
 
+  '@prisma/adapter-neon@5.18.0(@neondatabase/serverless@0.9.4)':
+    dependencies:
+      '@neondatabase/serverless': 0.9.4
+      '@prisma/driver-adapter-utils': 5.18.0
+      postgres-array: 3.0.2
+
   '@prisma/client@5.18.0(prisma@5.18.0)':
     optionalDependencies:
       prisma: 5.18.0
 
   '@prisma/debug@5.18.0': {}
+
+  '@prisma/driver-adapter-utils@5.18.0':
+    dependencies:
+      '@prisma/debug': 5.18.0
 
   '@prisma/engines-version@5.18.0-25.4c784e32044a8a016d99474bd02a3b6123742169': {}
 
@@ -1970,11 +2079,19 @@ snapshots:
       mini-svg-data-uri: 1.4.4
       tailwindcss: 3.4.9
 
+  '@tanstack/react-table@8.20.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
+    dependencies:
+      '@tanstack/table-core': 8.20.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
+
   '@tanstack/react-virtual@3.8.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
       '@tanstack/virtual-core': 3.8.6
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
+
+  '@tanstack/table-core@8.20.1': {}
 
   '@tanstack/virtual-core@3.8.6': {}
 
@@ -1995,6 +2112,12 @@ snapshots:
     dependencies:
       undici-types: 6.13.0
 
+  '@types/pg@8.11.6':
+    dependencies:
+      '@types/node': 22.2.0
+      pg-protocol: 1.6.1
+      pg-types: 4.0.2
+
   '@types/prop-types@15.7.12': {}
 
   '@types/react@18.3.3':
@@ -2005,6 +2128,19 @@ snapshots:
   '@types/use-sync-external-store@0.0.3': {}
 
   '@yr/monotone-cubic-spline@1.0.3': {}
+
+  ag-charts-types@10.1.0: {}
+
+  ag-grid-community@32.1.0:
+    dependencies:
+      ag-charts-types: 10.1.0
+
+  ag-grid-react@32.1.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+    dependencies:
+      ag-grid-community: 32.1.0
+      prop-types: 15.8.1
+      react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
   ansi-regex@5.0.1: {}
 
@@ -2364,6 +2500,8 @@ snapshots:
 
   object-hash@3.0.0: {}
 
+  obuf@1.1.2: {}
+
   package-json-from-dist@1.0.0: {}
 
   path-key@3.1.1: {}
@@ -2374,6 +2512,22 @@ snapshots:
     dependencies:
       lru-cache: 10.4.3
       minipass: 7.1.2
+
+  pg-int8@1.0.1: {}
+
+  pg-numeric@1.0.2: {}
+
+  pg-protocol@1.6.1: {}
+
+  pg-types@4.0.2:
+    dependencies:
+      pg-int8: 1.0.1
+      pg-numeric: 1.0.2
+      postgres-array: 3.0.2
+      postgres-bytea: 3.0.0
+      postgres-date: 2.1.0
+      postgres-interval: 3.0.0
+      postgres-range: 1.1.4
 
   picocolors@1.0.1: {}
 
@@ -2433,6 +2587,18 @@ snapshots:
       picocolors: 1.0.1
       source-map-js: 1.2.0
 
+  postgres-array@3.0.2: {}
+
+  postgres-bytea@3.0.0:
+    dependencies:
+      obuf: 1.1.2
+
+  postgres-date@2.1.0: {}
+
+  postgres-interval@3.0.0: {}
+
+  postgres-range@1.1.4: {}
+
   preact-render-to-string@5.2.3(preact@10.11.3):
     dependencies:
       preact: 10.11.3
@@ -2487,6 +2653,11 @@ snapshots:
 
   react-icons@5.2.1(react@18.3.1):
     dependencies:
+      react: 18.3.1
+
+  react-initials-avatar@1.1.2(react@18.3.1):
+    dependencies:
+      '@babel/runtime': 7.25.0
       react: 18.3.1
 
   react-is@16.13.1: {}
