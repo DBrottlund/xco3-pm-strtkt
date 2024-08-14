@@ -59,11 +59,11 @@ export const authOptions = {
       return session;
     },
   },
-  pages: {
-    signIn: '/auth/signin',
-    signOut: '/auth/signout',
-    error: '/auth/error', // Error code passed in query string as ?error=
-  },
+  // pages: {
+  //   signIn: '/auth/signin',
+  //   signOut: '/auth/signout',
+  //   error: '/auth/error', // Error code passed in query string as ?error=
+  // },
   debug: process.env.NODE_ENV === 'development',
 };
 

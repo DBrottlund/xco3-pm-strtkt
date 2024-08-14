@@ -1,7 +1,7 @@
 // prisma/seed.js
-
 const bcrypt = require("bcryptjs");
 const { PrismaClient } = require("@prisma/client");
+
 
 const prisma = new PrismaClient();
 
@@ -22,10 +22,13 @@ async function createUser(username, email, plainPassword, firstName, lastName, r
 }
 
 async function main() {
-  await createUser("jsmith", "jsmith@example.com", "yourpassword", "John", "Smith", "ADMIN");
-  await createUser("dbrottlund", "derek@usefilepton.com", "1234", "Derek", "Brottlund", "PM");
+
+  await createUser("dbrottlund2", "derek2@usefilepton.com", "1234", "Derek2", "Brottlund2", "ADMIN");
   // Add more users as needed
 }
+
+
+
 
 main()
   .catch((e) => {
