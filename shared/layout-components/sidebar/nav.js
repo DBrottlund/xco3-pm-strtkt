@@ -67,42 +67,42 @@ export const MenuItems = [
 		active: false,
 		selected: true,
 		dirchange: false, 
-		title: "Xco3 PM Dashboard"
+		title: "Dashboard"
 }
-	,
-	{
-		icon: PagesIcon,
-		// badgetxt: badge,
-		title: "Priority & Status",
-		type: "sub",
-		path: "/priority-status/",
-		type: "link",
-		active: false,
-		selected: true,
-		dirchange: false, 
-		title: "Xco3 Priority & Status"
-	}
-	,
-	{
-		icon: TablesIcon,
-		// badgetxt: badge,
-		title: "Xco3 Ask AI",
-		path: "/ask-ai/",
-		type: "link",
-		active: false,
-		selected: true,
-		dirchange: false, 
-	},
-	{
-		icon: UiElementsIcon,
-		// badgetxt: badge,
-		path: "/integrations/",
-		type: "link",
-		active: false,
-		selected: true,
-		dirchange: false, 
-		title: "Xco3 Integrations",
-	}
+	// ,
+	// {
+	// 	icon: PagesIcon,
+	// 	// badgetxt: badge,
+	// 	title: "Priority & Status",
+	// 	type: "sub",
+	// 	path: "/priority-status/",
+	// 	type: "link",
+	// 	active: false,
+	// 	selected: true,
+	// 	dirchange: false, 
+	// 	title: "Xco3 Priority & Status"
+	// }
+	// ,
+	// {
+	// 	icon: TablesIcon,
+	// 	// badgetxt: badge,
+	// 	title: "Xco3 Ask AI",
+	// 	path: "/ask-ai/",
+	// 	type: "link",
+	// 	active: false,
+	// 	selected: true,
+	// 	dirchange: false, 
+	// },
+	// {
+	// 	icon: UiElementsIcon,
+	// 	// badgetxt: badge,
+	// 	path: "/integrations/",
+	// 	type: "link",
+	// 	active: false,
+	// 	selected: true,
+	// 	dirchange: false, 
+	// 	title: "Xco3 Integrations",
+	// }
 
 
 ];
