@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@floating-ui/react':
+        specifier: ^0.26.22
+        version: 0.26.22(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@headlessui/react':
+        specifier: ^2.1.2
+        version: 2.1.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@neondatabase/serverless':
         specifier: ^0.9.4
         version: 0.9.4
@@ -26,9 +32,6 @@ importers:
       '@simonwep/pickr':
         specifier: ^1.9.1
         version: 1.9.1
-      '@tailwindcss/forms':
-        specifier: ^0.5.7
-        version: 0.5.7(tailwindcss@3.4.9)
       '@tanstack/react-table':
         specifier: ^8.20.1
         version: 8.20.1(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -38,9 +41,6 @@ importers:
       apexcharts:
         specifier: ^3.49.1
         version: 3.52.0
-      autoprefixer:
-        specifier: ^10.4.19
-        version: 10.4.20(postcss@8.4.41)
       bcryptjs:
         specifier: ^2.4.3
         version: 2.4.3
@@ -53,6 +53,9 @@ importers:
       firebase:
         specifier: ^10.12.2
         version: 10.12.5
+      luxon:
+        specifier: ^3.5.0
+        version: 3.5.0
       moment-timezone:
         specifier: ^0.5.45
         version: 0.5.45
@@ -105,14 +108,20 @@ importers:
         specifier: ^3.2.5
         version: 3.2.6(react@18.3.1)
     devDependencies:
+      '@tailwindcss/forms':
+        specifier: ^0.5.7
+        version: 0.5.7(tailwindcss@3.4.9)
+      autoprefixer:
+        specifier: ^10.4.20
+        version: 10.4.20(postcss@8.4.41)
       postcss:
-        specifier: ^8
+        specifier: ^8.4.41
         version: 8.4.41
       prisma:
         specifier: ^5.18.0
         version: 5.18.0
       tailwindcss:
-        specifier: ^3.4.1
+        specifier: ^3.4.9
         version: 3.4.9
 
 packages:
@@ -941,6 +950,10 @@ packages:
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
+
+  luxon@3.5.0:
+    resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
+    engines: {node: '>=12'}
 
   merge2@1.4.1:
     resolution: {integrity: sha512-8q7VEgMJW4J8tcfVPy8g09NcQwZdbwFEqhe/WZkoIzjn/3TGDwtOCYtXGxA3O8tPzpczCCDgv+P2P5y00ZJOOg==}
@@ -2424,6 +2437,8 @@ snapshots:
       js-tokens: 4.0.0
 
   lru-cache@10.4.3: {}
+
+  luxon@3.5.0: {}
 
   merge2@1.4.1: {}
 

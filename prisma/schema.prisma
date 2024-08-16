@@ -51,6 +51,7 @@ model Request {
 
   // Relations
   tasks              Task[]
+  status             Status
   completedTasks     String[] // Array of completed task IDs
   assigneeId         String?
   assignedById       String?
@@ -104,6 +105,15 @@ enum Role {
   PM    // Project Manager
   PA    // Personal Assistant
   ASSIGNEE
+}
+
+enum Status {
+  Request
+  Viewed
+  Assigned
+  PastDue
+  Merged
+  Completed
 }
 
 enum TimeUnit {
