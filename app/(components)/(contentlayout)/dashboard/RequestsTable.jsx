@@ -14,9 +14,14 @@ import ProductBadgeRenderer from './ProductBadgeRenderer.jsx';
 import calculateFutureDate from "./calculateFutureDate.js"; 
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed.js";
 import ProgressRenderer from './ProgressRenderer.jsx';
+import ActionsRenderer from './ActionsRenderer.jsx';
+import RequestEditOverlay from './EditRequestSidebar.jsx';
 
 // Function to modify a single request
 const modifyRequest = async (request) => {
+
+
+
   try {
     // Log the inputs to calculateFutureDate
     console.log("request.deadline:", request.dueAfterTime);
@@ -51,6 +56,14 @@ const modifyRequest = async (request) => {
 
 
 const RequestsTable = () => {
+  const [isOverlayVisible, setOverlayVisible] = useState(false);
+  const [postData, setPostData] = useState(null);
+
+  const handleShowOverlay = (req) => {
+    console.log("handleShowOverlay called with request:", req);
+    setPostData(req); // Set post data to populate form
+    setOverlayVisible(true);
+  };
   const [rowData, setRowData] = useState(null);
 
   const [colDefs, setColDefs] = useState([
@@ -65,7 +78,7 @@ const RequestsTable = () => {
       field: "title",
       filter: true,
       headerName: "Title",     
-      width: 250,  // Set the width for the "Title" column
+      width: 270,  // Set the width for the "Title" column
     },
     {
       field: "assignee",
@@ -103,9 +116,9 @@ const RequestsTable = () => {
       width: 120,  // Set the width for the "Status" column
     },
     {
-      field: "actions",
+      field: "id",
       headerName: "Actions",
-      cellRenderer: (p) => <ButtonRenderer data={p.data} text={p.value} value={p.value}/>,
+      cellRenderer: (p) => <ActionsRenderer isOverlayVisible={isOverlayVisible} handleShowOverlay={handleShowOverlay} data={p.data} value={p.value}/>,
       width: 100,  // Set the width for the "Actions" column
     },
   ]);
@@ -149,6 +162,11 @@ const RequestsTable = () => {
     </div>
     
     <div>
+    <RequestEditOverlay
+        isVisible={isOverlayVisible}
+        setIsVisible={setOverlayVisible}
+        postData={postData} // Pass post data to the overlay
+      />
       <pre>{JSON.stringify(rowData, null, 2)}</pre>
     </div>
     </>

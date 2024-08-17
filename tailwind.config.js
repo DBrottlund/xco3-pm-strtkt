@@ -152,8 +152,19 @@ module.exports = {
 			"spin-slow": "spin 3s linear infinite",
 			"slow-ping":"ping 2s linear infinite",
 			"animate-wase": "wase 4s linear infinite",
+			'slide-in': 'slideInRight 0.5s ease-out forwards',
+      "slide-out": "slideOutRight 0.5s ease-out forwards",
 		},
 		keyframes: {
+			slideInRight: {
+				'0%': { transform: 'translateX(100%)' },
+				'100%': { transform: 'translateX(0)' },
+			  },
+			  slideOutRight: {
+				'0%': { transform: 'translateX(0)' },
+				'100%': { transform: 'translateX(100%)' },
+			  },
+			 
 			particles: {
 				"0%": {
 					transform: " translateY(0) rotate(0)",

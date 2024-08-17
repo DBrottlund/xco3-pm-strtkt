@@ -7,7 +7,7 @@ import Themeprimarycolor, * as switcherdata from "../../data/switcherdata/switch
 const Switcher = ({ local_varaiable, ThemeChanger }) => {
 	return (
 		<Fragment>
-			<div id="hs-overlay-switcher" className="hs-overlay hidden ti-offcanvas ti-offcanvas-right">
+			<div id="hs-overlay-switcher" className="hs-overlay ti-offcanvas ti-offcanvas-right">
 				<div className="ti-offcanvas-header z-10 relative">
 					<h5 className="ti-offcanvas-title !text-[1.25rem]">Switcher</h5>
 					<button

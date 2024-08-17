@@ -3,10 +3,12 @@ import { Button } from 'rizzui';
 
 
 export default (props) => {
-    const country = props.valueFormatted ? props.valueFormatted : props.value;
-    const total = props.data.title;
+    const data = props.data;
+    const value = props.value;
+    const text = props.text;
+    const type = props.type;
 
     return (
-       <Button variant="outline">{props.text}</Button>
+       <Button variant={type}>{props.text}</Button>
     );
 };

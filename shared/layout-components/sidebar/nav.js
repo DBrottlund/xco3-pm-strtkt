@@ -61,7 +61,7 @@ export const MenuItems = [
 	},
 	{
 		icon: ChartsIcon,
-		badgetxt: badge2,
+		badgetxt: badge1,
 		path: "/dashboard/",
 		type: "link",
 		active: false,
