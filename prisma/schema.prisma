@@ -57,6 +57,7 @@ model Request {
   assignedById       String?
   createdById        String?
 
+  assigneeType       String?
   assignee           User?    @relation("AssignedRequests", fields: [assigneeId], references: [id])
   assignedBy         User?    @relation("AssignedByRequests", fields: [assignedById], references: [id])
   createdBy          User?    @relation("CreatedRequests", fields: [createdById], references: [id])

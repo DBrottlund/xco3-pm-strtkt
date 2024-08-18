@@ -35,18 +35,6 @@ const Layout = ({ children }) => {
       <Fragment>
         <div style={{ display: `${lateLoad ? "block" : "none"}` }}>
           <Switcher />
-          <div
-        id={`hs-overlay-req-edit-1`}
-        className="hs-overlay hidden ti-offcanvas ti-offcanvas-right"
-        tabIndex={-1}
-      >
-        <div className="ti-offcanvas-header">
-          <h5 className="ti-offcanvas-title">Edit Request</h5>
-        </div>
-        <div className="ti-offcanvas-body !h-[90%] !p-0">
-          TEST
-        </div>
-      </div>
           <div className="page">
             <Header />
             <Sidebar />

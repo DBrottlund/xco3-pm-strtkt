@@ -1,12 +1,12 @@
 import React from 'react';
-import { FaClipboard, FaEye, FaUserCheck, FaExclamationCircle, FaCodeMerge, FaCheckCircle } from "react-icons/fa";
+import { FaClipboard, FaEye, FaUserCheck, FaExclamationCircle, FaCheckCircle } from "react-icons/fa";
 
 const icons = {
   Request: FaClipboard,
   Viewed: FaEye,
   Assigned: FaUserCheck,
   PastDue: FaExclamationCircle,
-  Merged: FaCodeMerge,
+  Merged: FaExclamationCircle,
   Completed: FaCheckCircle
 };
 
