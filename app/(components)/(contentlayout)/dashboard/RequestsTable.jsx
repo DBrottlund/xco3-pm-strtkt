@@ -15,7 +15,7 @@ import calculateFutureDate from "./calculateFutureDate.js";
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed.js";
 import ProgressRenderer from './ProgressRenderer.jsx';
 import ActionsRenderer from './ActionsRenderer.jsx';
-import RequestEditOverlay from './EditRequestSidebar.jsx';
+import RequestEditSidebar from './EditRequestSidebar.jsx';
 
 // Function to modify a single request
 const modifyRequest = async (request) => {
@@ -162,11 +162,11 @@ const RequestsTable = () => {
     </div>
     
     <div>
-    {/* <RequestEditOverlay
+    <RequestEditSidebar
         isVisible={isOverlayVisible}
         setIsVisible={setOverlayVisible}
         postData={postData} // Pass post data to the overlay
-      /> */}
+      />
       <pre>{JSON.stringify(rowData, null, 2)}</pre>
     </div>
     </>

@@ -1,9 +1,16 @@
+
+"use client";
+
 import React, { Fragment, useState, useEffect } from "react";
 import { Transition, Dialog } from "@headlessui/react";
 import { FaTrash } from "react-icons/fa";
-import { RiFileEditLine, RiTaskLine, RiStickyNoteLine } from "react-icons/ri";
+import dynamic from 'next/dynamic';
 
-import JoditEditor from "jodit-react";
+const JoditEditor = dynamic(() => import('jodit-react'), {
+    ssr: false,
+    loading: () => <p>Loading editor...</p>
+  });
+
 
 const RequestEditSidebar = ({
   isVisible,
