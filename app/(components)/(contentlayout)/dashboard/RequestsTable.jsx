@@ -1,176 +1,137 @@
-"use client"; // Mark this as a client component
-
 import React, { useState, useEffect } from 'react';
-import { fetchRequests } from '@/shared/actions';
 import { AgGridReact } from 'ag-grid-react';
-import { Button } from 'rizzui'; 
 import "ag-grid-community/styles/ag-grid.css"; 
 import "ag-grid-community/styles/ag-theme-quartz.css"; 
-import ButtonRenderer from './ButtonRenderer.jsx';
-import BadgeRenderer from './BadgeRenderer.jsx';
-import StatusBadgeRenderer from './StatusBadgeRenderer.jsx';
-import DueDateRenderer from './DueDateRenderer.jsx';
-import ProductBadgeRenderer from './ProductBadgeRenderer.jsx';
-import calculateFutureDate from "./calculateFutureDate.js"; 
-import calculateWorkHoursPassed from "./calculateWorkHoursPassed.js";
-import ProgressRenderer from './ProgressRenderer.jsx';
-import ActionsRenderer from './ActionsRenderer.jsx';
-import RequestEditSidebar from './EditRequestSidebar.jsx';
+import { fetchRequests, fetchUsers } from '@/shared/actions';
+import ProductBadgeRenderer from './ProductBadgeRenderer';
+import ProgressRenderer from './ProgressRenderer';
+import StatusBadgeRenderer from './StatusBadgeRenderer';
+import ActionsRenderer from './ActionsRenderer';
+import RequestEditSidebar from './EditRequestSidebar';
+import calculateFutureDate from "./calculateFutureDate"; 
+import calculateWorkHoursPassed from "./calculateWorkHoursPassed";
+// import  modifyRequest  from "./modifyRequest";
 
-// Function to modify a single request
 const modifyRequest = async (request) => {
-
-
-
   try {
-    // Log the inputs to calculateFutureDate
-    console.log("request.deadline:", request.dueAfterTime);
-    console.log("request.startedAt:", request.startedAt);
-
     const deadline = await calculateFutureDate(request.dueAfterTime, request.startedAt);
-    const deadlinePercent = await calculateWorkHoursPassed(
-      request.startedAt,
-      deadline
-    );
-
-    // Concatenate productTags and initiativeTags into allTags
+    const deadlinePercent = await calculateWorkHoursPassed(request.startedAt, deadline);
     const allTags = [...(request.productTags || []), ...(request.initiativesTags || [])];
 
     return {
       ...request,
-      deadline: deadline,
-      deadlinePercent: deadlinePercent,
-      assignee: request.assignee,
-      tasks: request.tasks,
-      status: request.status,
-      actions: request.actions,
-      allTags: allTags, // Add the concatenated tags
+      deadline,
+      deadlinePercent,
+      allTags,
     };
-
   } catch (error) {
-    console.error("Error in modifyRequest:", error); // Catch any errors in modification
-    return request; // Return the original request in case of an error
+    console.error("Error in modifyRequest:", error);
+    return request;
   }
 };
-
-
 
 const RequestsTable = () => {
   const [isOverlayVisible, setOverlayVisible] = useState(false);
   const [postData, setPostData] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [rowData, setRowData] = useState([]);
 
   const handleShowOverlay = (req) => {
     console.log("handleShowOverlay called with request:", req);
-    setPostData(req); // Set post data to populate form
+    setPostData(req);
     setOverlayVisible(true);
   };
-  const [rowData, setRowData] = useState(null);
 
-  const [colDefs, setColDefs] = useState([
+  const colDefs = [
     {
       field: "allTags",
       filter: true,
       headerName: "Products • Initiatives",
-      cellRenderer: (p) => <ProductBadgeRenderer data={p.data} value={p.value} />,
-      width: 220,  // Set the width for the "Products" column
+      cellRenderer: ProductBadgeRenderer,
+      width: 220,
     },
-    {
-      field: "title",
-      filter: true,
-      headerName: "Title",     
-      width: 270,  // Set the width for the "Title" column
-    },
+    { field: "title", filter: true, headerName: "Title", width: 270 },
     {
       field: "assignee",
       headerName: "Assignee",
       filter: true,
-      cellRenderer: (p) => p.value.firstName + " " + p.value.lastName,
-      width: 150,  // Set the width for the "Assignee" column
+      valueGetter: (params) => `${params.data.assignee.firstName} ${params.data.assignee.lastName}`,
+      width: 150,
     },
     {
       field: "assignedBy",
       headerName: "Assigned By",
       filter: true,
-      cellRenderer: (p) => p.value.firstName + " " + p.value.lastName,
-      width: 150,  // Set the width for the "Assigned By" column
+      valueGetter: (params) => `${params.data.assignedBy.firstName} ${params.data.assignedBy.lastName}`,
+      width: 150,
     },
-    {
-      field: "deadline",
-      headerName: "Deadline",
-      filter: true,
-      width: 220,  // Set the width for the "Deadline" column
-    },
+    { field: "deadline", headerName: "Deadline", filter: true, width: 220 },
     {
       field: "deadlinePercent",
       filter: true,
       headerName: "Progress",
-      cellRenderer: (p) => <ProgressRenderer data={p.data} value={p.value}/>,
-   
-      width: 120,  // Set the width for the "Task / Time" column
+      cellRenderer: ProgressRenderer,
+      width: 120,
     },
     {
       field: "status",
       filter: true,
       headerName: "Status",
-      cellRenderer: (p) => <StatusBadgeRenderer data={p.data} text={p.value} value={p.value}/>,
-      width: 120,  // Set the width for the "Status" column
+      cellRenderer: StatusBadgeRenderer,
+      width: 120,
     },
     {
       field: "id",
       headerName: "Actions",
-      cellRenderer: (p) => <ActionsRenderer isOverlayVisible={isOverlayVisible} handleShowOverlay={handleShowOverlay} data={p.data} value={p.value}/>,
-      width: 100,  // Set the width for the "Actions" column
+      cellRenderer: (params) => (
+        <ActionsRenderer
+          isOverlayVisible={isOverlayVisible}
+          handleShowOverlay={handleShowOverlay}
+          data={params.data}
+          value={params.value}
+        />
+      ),
+      width: 100,
     },
-  ]);
-  
+  ];
 
   useEffect(() => {
-    async function getRequests() {
-      const requests = await fetchRequests(); // Call the server action
-
-      // Modify the requests data
-      const modifiedRequests = await Promise.all(
-        requests.map(async (request) => await modifyRequest(request))
-      );
-
-      setRowData(modifiedRequests);
+    async function fetchData() {
+      try {
+        const [requests, fetchedUsers] = await Promise.all([fetchRequests(), fetchUsers()]);
+        const modifiedRequests = await Promise.all(requests.map(modifyRequest));
+        setRowData(modifiedRequests);
+        setUsers(fetchedUsers);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
     }
 
-    getRequests();
+    fetchData();
   }, []);
 
-  if (!rowData) {
-    return <p>Loading...</p>;
-  }
-
   return (
-    <>  
-    <div
-     className="ag-theme-quartz" // applying the Data Grid theme
-     style={{ height: 500 }} // the Data Grid will fill the size of the parent container
-    >
-      <AgGridReact
-  getRowHeight={(params) => {
-    // You can return a specific height based on the row's data or other conditions
-   
-    return (params.data.allTags.length / 2) * 36;  // Default row height
-  }}
-  columnDefs={colDefs}
-  rowData={rowData}
-/>
-
-    </div>
-    
-    <div>
-    <RequestEditSidebar
+    <>
+      <div className="ag-theme-quartz" style={{ height: 500 }}>
+        <AgGridReact
+getRowHeight={(params) => { 
+const h = (params.data.allTags?.length / 2) * 36;
+  return h > 72 ? h : 72;  // Default row height
+}}          columnDefs={colDefs}
+          rowData={rowData}
+        />
+      </div>
+      
+      <RequestEditSidebar
         isVisible={isOverlayVisible}
         setIsVisible={setOverlayVisible}
-        postData={postData} // Pass post data to the overlay
+        postData={postData}
+        setRowData={setRowData}
+        rowData={rowData}
+        users={users}
       />
-      <pre>{JSON.stringify(rowData, null, 2)}</pre>
-    </div>
     </>
-   );
+  );
 };
 
 export default RequestsTable;

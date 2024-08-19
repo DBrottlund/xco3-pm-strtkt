@@ -48,7 +48,7 @@ const calculateFutureDate = async (deadline, startDate) => {
     };
 
     // Add the working time according to the unit and number of the deadline
-    let futureDate = addWorkingTime(start, timeNumber, timeUnit.toLowerCase());
+    let futureDate = addWorkingTime(start, timeNumber, timeUnit?.toLowerCase());
 
     // Ensure that futureDate is a valid DateTime object
     if (!futureDate.isValid) {

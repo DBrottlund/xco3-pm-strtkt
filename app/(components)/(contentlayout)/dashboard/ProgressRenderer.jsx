@@ -8,7 +8,7 @@ export default (props) => {
   const { data, value } = props;
 
   const calcColor = (percentTime, percentTask) => {
-    if (percentTask > percentTime) {
+    if (percentTask >= percentTime) {
       return "text-[#64a30d]";  // Green
     } else if (percentTask < percentTime - 10) {
       return "text-red-500";    // Red
@@ -18,7 +18,7 @@ export default (props) => {
   };
   
   const calcLighterColor = (percentTime, percentTask) => {
-    if (percentTask > percentTime) {
+    if (percentTask >= percentTime) {
       return "text-[#9bd43b]";  // Lighter shade of green
     } else if (percentTask < percentTime - 10) {
       return "text-red-300";    // Lighter shade of red

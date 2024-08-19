@@ -64,7 +64,6 @@ model Request {
   changeLog          Log[]
 
   productTags        ProductTag[]
-  initiativesTags    InitiativeTag[]
 }
 
 model TimeFrame {
@@ -132,12 +131,8 @@ enum ProductTag {
   COMPLIANCE
   BACKOFFICE_SETTINGS
   BACKOFFICE
-}
-
-enum InitiativeTag {
   API
   CYBERSECURITY
-  BACKOFFICE
   UI
   UX
   DOCUMENT_AUTOMATION
