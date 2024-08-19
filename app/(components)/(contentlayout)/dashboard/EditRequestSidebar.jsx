@@ -121,7 +121,7 @@ const RequestEditSidebar = ({
     { value: "CYBERSECURITY", label: "Cybersecurity" },
     { value: "UI", label: "UI" },
     { value: "UX", label: "UX" },
-    { value: "DOCUMENT AUTOMATION", label: "Document Automation" }
+    { value: "DOCUMENT_AUTOMATION", label: "Document Automation" }
   ];
 
   useEffect(() => {
@@ -440,7 +440,7 @@ const RequestEditSidebar = ({
       <Transition appear show={isOpen} as={Fragment}>
         <Dialog
           as="div"
-          className="relative z-[9999999]"
+          className="relative z-[9999999] !bg-[#111c43] rounded-lg"
           onClose={() => setIsOpen(false)}
         >
           <Transition.Child
@@ -466,10 +466,10 @@ const RequestEditSidebar = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-7xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel className="w-full max-w-7xl transform overflow-hidden rounded-2xl text-gray-50 !bg-[#111c43] p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
                     as="div"
-                    className="flex justify-between text-lg font-medium leading-6 text-gray-900 mb-4"
+                    className="flex justify-between text-lg font-medium leading-6 text-gray-50 mb-4"
                   >
                     <div>Edit Tasks</div>
                     <div className="flex justify-end space-x-3">
@@ -499,60 +499,62 @@ const RequestEditSidebar = ({
                     {localTasks.map((task) => (
                       <Disclosure key={task.id}>
                         {({ open }) => (
-                          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-                            <Disclosure.Button className="w-full px-4 py-3 flex items-center justify-between text-left focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
-                              <div className="flex items-center space-x-3 flex-grow">
-                                <input
-                                  type="checkbox"
-                                  checked={!!task.completedAt}
-                                  onChange={(e) => handleTaskChange(task.id, "completedAt", e.target.checked)}
-                                  className="w-5 h-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                />
-                                <input
-                                  type="text"
-                                  value={task.title}
-                                  onChange={(e) => handleTaskChange(task.id, 'title', e.target.value)}
-                                  placeholder="Task title"
-                                  className="flex-grow bg-transparent border-none focus:outline-none focus:ring-0"
-                                />
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    removeTask(task.id);
-                                  }}
-                                  className="p-1 text-gray-400 hover:text-red-500 focus:outline-none"
-                                >
-                                  <FaTrash className="w-4 h-4" />
-                                </button>
-                                <FaChevronUp
-                                  className={`${
-                                    open ? 'transform rotate-180' : ''
-                                  } w-4 h-4 text-gray-500`}
-                                />
-                              </div>
-                            </Disclosure.Button>
-                            <Transition
-                              enter="transition duration-100 ease-out"
-                              enterFrom="transform scale-95 opacity-0"
-                              enterTo="transform scale-100 opacity-100"
-                              leave="transition duration-75 ease-out"
-                              leaveFrom="transform scale-100 opacity-100"
-                              leaveTo="transform scale-95 opacity-0"
-                            >
-                              <Disclosure.Panel className="px-4 pb-3">
-                                <textarea
-                                  value={task.taskText}
-                                  onChange={(e) => handleTaskChange(task.id, 'taskText', e.target.value)}
-                                  placeholder="Task details"
-                                  className="w-full mt-2 px-3 py-2 text-gray-700 border rounded-lg focus:outline-none focus:border-blue-500"
-                                  rows="3"
-                                />
-                              </Disclosure.Panel>
-                            </Transition>
-                          </div>
+                                 <>
+                                 <div className="w-full px-4 py-3 flex items-center justify-between text-left">
+                                   <div className="flex items-center space-x-3 text-[#111c34] flex-grow">
+                                     <input
+                                       type="checkbox"
+                                       checked={!!task.completedAt}
+                                       onChange={(e) => handleTaskChange(task.id, "completedAt", e.target.checked)}
+                                       className="w-5 h-5 rounded bg-gray-300 text-blue-600 focus:ring-blue-500"
+                                     />
+                                     <input
+                                       type="text"
+                                       value={task.title}
+                                       onChange={(e) => handleTaskChange(task.id, 'title', e.target.value)}
+                                       placeholder="Task title"
+                                       className="flex-grow bg-white rounded-lg text-grey-700 border-none focus:outline-none focus:ring-0"
+                                     />
+                                   </div>
+                                   <div className="flex items-center space-x-2">
+                                     <button
+                                       onClick={(e) => {
+                                         e.preventDefault();
+                                         e.stopPropagation();
+                                         removeTask(task.id);
+                                       }}
+                                       className="p-1 text-gray-400 hover:text-red-500 focus:outline-none"
+                                     >
+                                       <FaTrash className="w-4 h-4" />
+                                     </button>
+                                     <Disclosure.Button className="focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
+                                       <FaChevronUp
+                                         className={`${
+                                           open ? 'transform rotate-180' : ''
+                                         } w-4 h-4 text-gray-500`}
+                                       />
+                                     </Disclosure.Button>
+                                   </div>
+                                 </div>
+                                 <Transition
+                                   enter="transition duration-100 ease-out"
+                                   enterFrom="transform scale-95 opacity-0"
+                                   enterTo="transform scale-100 opacity-100"
+                                   leave="transition duration-75 ease-out"
+                                   leaveFrom="transform scale-100 opacity-100"
+                                   leaveTo="transform scale-95 opacity-0"
+                                 >
+                                   <Disclosure.Panel className="px-4 pb-3 ml-5 mr-5">
+                                     <textarea
+                                       value={task.taskText}
+                                       onChange={(e) => handleTaskChange(task.id, 'taskText', e.target.value)}
+                                       placeholder="Task details"
+                                       className="w-full mt-1 ml-3  px-3 py-2 text-[#111c34] border rounded-lg focus:outline-none focus:border-blue-500"
+                                       rows="3"
+                                     />
+                                   </Disclosure.Panel>
+                                 </Transition>
+                               </>
                         )}
                       </Disclosure>
                     ))}
@@ -583,13 +585,13 @@ const RequestEditSidebar = ({
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
-        <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] bg-white shadow-lg z-[999999] overflow-y-auto">
-          <div className="m-2 p-6 bg-gray-50 rounded-lg">
+        <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] !bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
+          <div className="m-2 p-6 !bg-[#111c43] rounded-lg ">
             <div className="flex justify-between items-center mb-3">
-              <h2 className="text-2xl font-bold">Edit Request</h2>
+              <h2 className="text-2xl text-gray-50 font-bold">Edit Request</h2>
               <button
                 onClick={() => setIsVisible(false)}
-                className="text-gray-500 hover:text-gray-700 transition-colors"
+                className="text-gray-50 hover:text-gray-100 transition-colors"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -614,7 +616,7 @@ const RequestEditSidebar = ({
             )}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-50 mb-1">
                   Title
                 </label>
                 <input
@@ -625,7 +627,7 @@ const RequestEditSidebar = ({
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-50 mb-1">
                 Products • Initiatives
                </label>
                <div className="relative">
@@ -641,7 +643,7 @@ const RequestEditSidebar = ({
 
               <div className="flex gap-2 ">
                 <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-50 mb-1">
                   Status
                 </label>
                 <div className="relative">
@@ -659,7 +661,7 @@ const RequestEditSidebar = ({
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-50 mb-1">
                   Assignee Type
                 </label>
                 <input
@@ -672,7 +674,7 @@ const RequestEditSidebar = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-50 mb-1">
                   Assignee
                 </label>
                 <UserDropdown
@@ -685,7 +687,7 @@ const RequestEditSidebar = ({
 
               <div className="flex gap-8"> 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-50 mb-1">
                     Due After
                   </label>
                   <div className="flex items-center space-x-2">
@@ -709,7 +711,7 @@ const RequestEditSidebar = ({
                 </div>
               
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-50 mb-1">
                     Turnaround
                   </label>
                   <div className="flex items-center space-x-2">
@@ -734,7 +736,7 @@ const RequestEditSidebar = ({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-50 mb-1">
                   Original Request
                 </label>
                 <textarea

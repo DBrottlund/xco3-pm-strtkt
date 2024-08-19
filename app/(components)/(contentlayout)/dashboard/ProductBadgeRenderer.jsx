@@ -9,7 +9,7 @@ export default (props) => {
     <div className="flex flex-wrap justify-center items-center gap-2 py-2">
       {value.map((item, index) => (
         <span
-          className="badge !rounded-full bg-black text-white p-2 flex justify-center items-center"
+          className="badge !bg-[#111c43] !rounded-full text-white p-2 flex justify-center items-center"
           key={index}
         >
           {item}

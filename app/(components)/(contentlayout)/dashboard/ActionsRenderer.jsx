@@ -3,7 +3,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 
 export default (props) => {
   //    detruct props
-  const { data, value, handleShowOverlay } = props;
+  const { data, value, handleShowOverlay, deleteRequest } = props;
 
   return (
     <div className="flex justify-center items-center gap-2 py-2">
@@ -21,7 +21,7 @@ export default (props) => {
       </button>
 
       <button
-      
+        onClick={() => deleteRequest(data.id)}
         type="button"
         aria-label="button"
         className="ti-btn ti-btn-icon bg-secondary/20 text-primary !border hover:bg-secondary hover:text-white !rounded-full ti-btn-wave delete-button-b"

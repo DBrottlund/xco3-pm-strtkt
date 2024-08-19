@@ -1,5 +1,6 @@
 'use server'
 import { PrismaClient } from '@prisma/client';
+import { DateTime } from 'luxon';
 
 const prisma = new PrismaClient();
 
@@ -92,23 +93,25 @@ export async function updateRequest(id, data) {
 }
 
 export async function saveRequest(data) {
+  console.log("Received data:", data);
   try {
     const newRequest = await prisma.request.create({
       data: {
         title: data.title,
-        requestIntro: data.requestIntro,
-        requestOutro: data.requestOutro,
-        requestOriginal: data.requestOriginal,
-        requestAIProcessed: data.requestAIProcessed,
-        percentComplete: data.percentComplete,
-        status: data.status,
-        completedTasks: data.completedTasks,
-        assigneeId: data.assigneeId,
-        assignedById: data.assignedById,
-        createdById: data.createdById,
-        assigneeType: data.assigneeType,
-        productTags: data.productTags,
-        initiativesTags: data.initiativesTags,
+        requestIntro: data?.requestIntro,
+        requestOutro: data?.requestOutro,
+        requestOriginal: data?.requestOriginal,
+        requestAIProcessed: data?.requestAIProcessed,
+        percentComplete: data.percentComplete || 0,
+        status: data.status || "Request",
+        startedAt: data.startedAt || DateTime.now().setZone('America/Chicago'),
+        completedTasks: data.completedTasks || [],
+        assignee: { connect: { id: data.assigneeId } },
+        assignedBy: { connect: { id: data.assignedById } },
+        createdBy: { connect: { id: data.createdById } },
+        assigneeType: data.assigneeType || "USER",
+        productTags: data.productTags || [],
+        // initiativesTags: data.initiativesTags,
         dueAfterTime: {
           create: {
             timeUnit: data.dueAfterTime.timeUnit,
@@ -117,19 +120,19 @@ export async function saveRequest(data) {
         },
         turnaroundTime: {
           create: {
-            timeUnit: data.turnaroundTime.timeUnit,
-            timeNumber: data.turnaroundTime.timeNumber,
+            timeUnit: data?.turnaroundTime.timeUnit,
+            timeNumber: data?.turnaroundTime.timeNumber,
           },
         },
-        tasks: {
-          create: data.tasks.map(task => ({
-            title: task.title,
-            taskText: task.taskText,
-          })),
-        },
+        // tasks: {
+        //   create: data.tasks.map(task => ({
+        //     title: task.title,
+        //     taskText: task.taskText,
+        //   })),
+        // },
       },
       include: {
-        tasks: true,
+        tasks: false,
         dueAfterTime: true,
         turnaroundTime: true,
         assignee: true,

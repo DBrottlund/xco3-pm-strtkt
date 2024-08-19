@@ -10,6 +10,9 @@ import ActionsRenderer from './ActionsRenderer';
 import RequestEditSidebar from './EditRequestSidebar';
 import calculateFutureDate from "./calculateFutureDate"; 
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed";
+import {
+  deleteRequest
+} from "@/shared/actions";
 // import  modifyRequest  from "./modifyRequest";
 
 const modifyRequest = async (request) => {
@@ -35,11 +38,37 @@ const RequestsTable = () => {
   const [postData, setPostData] = useState(null);
   const [users, setUsers] = useState([]);
   const [rowData, setRowData] = useState([]);
+  const [confirmDelete, setConfirmDelete] = useState(null);
+
 
   const handleShowOverlay = (req) => {
     console.log("handleShowOverlay called with request:", req);
     setPostData(req);
     setOverlayVisible(true);
+  };
+
+  const initiateDelete = (id) => {
+    console.log("initiateDelete called with id:", id);
+    setConfirmDelete(id);
+  };
+
+  const confirmDeleteRow = () => {
+    if (confirmDelete !== null) {
+      const updatedRowData = rowData.filter((row) => row.id !== confirmDelete);
+      setRowData(updatedRowData);
+      try {
+        deleteRequest(confirmDelete);
+      } catch (error) {
+        console.error("Error deleting request:", error);
+      }
+      setConfirmDelete(null);
+      console.log("Row deleted successfully");
+    }
+  };
+
+  const cancelDelete = () => {
+    setConfirmDelete(null);
+    console.log("Row deletion cancelled");
   };
 
   const colDefs = [
@@ -87,6 +116,7 @@ const RequestsTable = () => {
         <ActionsRenderer
           isOverlayVisible={isOverlayVisible}
           handleShowOverlay={handleShowOverlay}
+          deleteRequest={initiateDelete}
           data={params.data}
           value={params.value}
         />
@@ -121,7 +151,31 @@ const h = (params.data.allTags?.length / 2) * 36;
           rowData={rowData}
         />
       </div>
-      
+      {confirmDelete !== null && (
+        <>
+          {/* Overlay */}
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40"></div>
+          
+          {/* Popup */}
+          <div className="fixed top-0 left-1/2 transform -translate-x-1/2 mt-20 bg-white p-6 rounded-lg shadow-xl z-50">
+            <p className="text-lg font-semibold mb-4">Are you sure you want to delete this row?</p>
+            <div className="flex justify-end space-x-4">
+              <button 
+                onClick={confirmDeleteRow}
+                className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+              >
+                Yes, delete
+              </button>
+              <button 
+                onClick={cancelDelete}
+                className="bg-gray-300 hover:bg-gray-400 text-black font-bold py-2 px-4 rounded"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </>
+      )}
       <RequestEditSidebar
         isVisible={isOverlayVisible}
         setIsVisible={setOverlayVisible}
