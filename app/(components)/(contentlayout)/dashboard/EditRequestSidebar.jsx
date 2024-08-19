@@ -177,7 +177,6 @@ const RequestEditSidebar = ({
       requestOriginal: originalRequest,
       requestIntro: instructions,
       requestOutro: notes,
-      status: postData.status,
       completedTasks: postData.completedTasks,
       productTags: selectedProducts.map(option => option.value),
       dueAfterTime: {      
