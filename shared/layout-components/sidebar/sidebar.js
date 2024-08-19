@@ -633,12 +633,22 @@ const Sidebar = ({ local_varaiable, ThemeChanger }) => {
 				onMouseLeave={() => Outhover()}>
 				<div className="main-sidebar-header">
 					<Link href="/dashboard/" className="header-logo">
-						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-logo.png`} alt="logo" className="main-logo desktop-logo" />
+						{/* <img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-logo.png`} alt="logo" className="main-logo desktop-logo" />
 						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/toggle-logo.png`} alt="logo" className="main-logo toggle-logo" />
 						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-dark.png`} alt="logo" className="main-logo desktop-dark" />
 						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/toggle-dark.png`} alt="logo" className="main-logo toggle-dark" />
 						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/desktop-white.png`} alt="logo" className="main-logo desktop-white" />
-						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/toggle-white.png`} alt="logo" className="main-logo toggle-white" />
+						<img src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/brand-logos/toggle-white.png`} alt="logo" className="main-logo toggle-white" /> */}
+						<div className="w-[92px] h-[32px] rounded-lg"
+						><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 91 32">
+  <defs>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="1" stdDeviation="1" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <rect width="89" height="30" x="1" y="1" rx="15" ry="15" fill="white" filter="url(#shadow)"/>
+  <text x="45.5" y="16" font-family="Quicksand, Arial, sans-serif" font-size="16" font-weight="700" text-anchor="middle" dominant-baseline="middle" fill="#111c34">Xco3</text>
+</svg></div>
 
 					</Link>
 				</div>
