@@ -11,7 +11,6 @@ import { useRouter } from "next/navigation";
 import AuthButton from "@/app/api/auth/AuthButton.client";
 import InitialsAvatar from 'react-initials-avatar';
 import 'react-initials-avatar/lib/ReactInitialsAvatar.css';
-import NewRequestPopup from "./NewRequest";
 
 const Header = ({ local_varaiable, ThemeChanger }) => {
 	const { data: session, status } = useSession();
@@ -270,21 +269,21 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 		};
 	}, []);
 
-  const [isNewReqPopupOpen, setIsNewReqPopupOpen] = useState(false);
+//   const [isNewReqPopupOpen, setIsNewReqPopupOpen] = useState(false);
 
-  const openNewReqPopup = () => {
-    setIsNewReqPopupOpen(true);
-  };
+//   const openNewReqPopup = () => {
+//     setIsNewReqPopupOpen(true);
+//   };
 
-  const closeNewReqPopup = () => {
-    setIsNewReqPopupOpen(false);
-  };
+//   const closeNewReqPopup = () => {
+//     setIsNewReqPopupOpen(false);
+//   };
 
 	return (
 		
 		<Fragment>
-			{session &&
-			(<NewRequestPopup session={session} setIsOpen={setIsNewReqPopupOpen} isOpen={isNewReqPopupOpen} onClose={closeNewReqPopup}/>)}
+			{/* {session &&
+			(<NewRequestPopup session={session} setIsOpen={setIsNewReqPopupOpen} isOpen={isNewReqPopupOpen} onClose={closeNewReqPopup}/>)} */}
 			<div className="app-header">
 				<nav className="main-header !h-[3.75rem]" aria-label="Global">
 					<div className="main-header-container ps-[0.725rem] pe-[1rem] ">
@@ -303,13 +302,13 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 							</div>
 						</div>
 
-						<div className="header-element p-2.5 md:px-[0.325rem]">
+						{/* <div className="header-element p-2.5 md:px-[0.325rem]">
 						<button
 						
 						onClick={() => openNewReqPopup()}
 
 						type="button" class="ti-btn !bg-[#111c43] ti-btn-[#111c43] !text-white ti-btn-wave">New Request</button>
-                  		</div>
+                  		</div> */}
 
 						<div className="header-content-right">
 

@@ -17,6 +17,8 @@ import StatusBadgeRenderer from './StatusBadgeRenderer';
 
 import calculateFutureDate from "./calculateFutureDate";
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed";
+import CustomJoditEditor from "./CustomJoditEditor";
+
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
 
@@ -25,7 +27,7 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
   loading: () => <p>Loading editor...</p>,
 });
 
-const modifyRequest = async (request, tasks) => {
+const modifyRequest = async (request, tasks = []) => {
   try {
     const deadline = await calculateFutureDate(
       request.dueAfterTime,
@@ -101,10 +103,14 @@ const RequestEditSidebar = ({
   );
   const [notes, setNotes] = useState(postData?.requestOutro ?? "");
   const [tasks, setTasks] = useState(postData?.tasks ?? []);
+  const [aiContent, setAiContent] = useState(
+    postData?.requestAIProcessed ?? ''
+  );
 
   const [isInstructionsEditorOpen, setIsInstructionsEditorOpen] = useState(false);
   const [isNotesEditorOpen, setIsNotesEditorOpen] = useState(false);
   const [isTasksEditorOpen, setIsTasksEditorOpen] = useState(false);
+  const [isAIEditorOpen, setIsAIEditorOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
 
@@ -126,6 +132,7 @@ const RequestEditSidebar = ({
 
   useEffect(() => {
     if (postData) {
+      setAiContent(postData?.requestAIProcessed ?? '');
       setTitle(postData.title ?? "");
       setAssigneeType(postData.assigneeType ?? "");
       setAssigneeId(postData.assigneeId ?? "");
@@ -174,6 +181,7 @@ const RequestEditSidebar = ({
       assignee: { connect: { id: assigneeId } },
       assignedById: currentUser.id,
       assignedBy: { connect: { id: currentUser.id} },
+      requestAIProcessed: aiContent,
       requestOriginal: originalRequest,
       requestIntro: instructions,
       requestOutro: notes,
@@ -280,7 +288,27 @@ const RequestEditSidebar = ({
       'selectall'
     ],
   };
-  const EditorPopup = ({ isOpen, setIsOpen, content, setContent, title }) => (
+  const EditorPopup = ({ isOpen, setIsOpen, content, setContent, title })  => {
+    const [localContent, setLocalContent] = useState(content || '');
+  
+    useEffect(() => {
+      setLocalContent(content || '');
+    }, [content, isOpen]);
+  
+    const handleSave = () => {
+      setContent(localContent);
+      setIsOpen(false);
+    };
+  
+    const handleCancel = () => {
+      setLocalContent(content || '');
+      setIsOpen(false);
+    };
+  
+    return(
+
+    
+
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
         as="div"
@@ -318,30 +346,32 @@ const RequestEditSidebar = ({
                   {title}
                 </Dialog.Title>
                 <div className="mt-2">
-                  <JoditEditor
-                    value={content}
+
+                  <CustomJoditEditor
+                    value={localContent}
                     config={configJot}
                     tabIndex={1}
-                    setContent={setContent}
-                    onBlur={(newContent) => setContent(newContent)}
+                    setContent={setLocalContent}
+                    onChange={(newContent) => setLocalContent(newContent)}
+                    onBlur={(newContent) => setLocalContent(newContent)}
                   />
                 </div>
 
                 <div className="mt-6 flex justify-end space-x-3">
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Save
-                  </button>
-                  <button
-                    type="button"
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    Cancel
-                  </button>
+                <button
+            type="button"
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+            onClick={handleSave}
+          >
+            Save
+          </button>
+          <button
+            type="button"
+            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+            onClick={handleCancel}
+          >
+            Cancel
+          </button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -349,7 +379,7 @@ const RequestEditSidebar = ({
         </div>
       </Dialog>
     </Transition>
-  );
+  )};
 
   const TasksEditor = ({ isOpen, setIsOpen, requestId }) => {
     const [localTasks, setLocalTasks] = useState(tasks);
@@ -585,7 +615,7 @@ const RequestEditSidebar = ({
         leaveFrom="translate-x-0"
         leaveTo="translate-x-full"
       >
-        <div className="fixed top-0 right-0 h-full w-full sm:w-[500px] !bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
+        <div className="fixed top-0 right-0 h-full w-full sm:w-[600px] !bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
           <div className="m-2 p-6 !bg-[#111c43] rounded-lg ">
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-2xl text-gray-50 font-bold">Edit Request</h2>
@@ -773,15 +803,24 @@ const RequestEditSidebar = ({
                   <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
                   Notes
                 </button>
+
+                <button
+                  onClick={() => setIsAIEditorOpen(true)}
+                  type="button"
+                  className="ti-btn ti-btn-primary-full label-ti-btn !rounded-full"
+                >
+                  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
+                  AI Request
+                </button>
               </div>
             </div>
             <div className="flex flex-col justify-end"></div>
-            <div className="flex justify-center items-center mt-6 ">
+            <div className="flex justify-left items-center mt-6 ">
               <button
                 onClick={handleSave}
                 disabled={isSaving}
                 type="button"
-                className={`mt-6 w-1/2 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                className={`mt-6 w-1/3 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
                   isSaving ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
@@ -811,6 +850,14 @@ const RequestEditSidebar = ({
         content={notes}
         setContent={setNotes}
         title="Edit Notes"
+      />
+
+<EditorPopup
+        isOpen={isAIEditorOpen}
+        setIsOpen={setIsAIEditorOpen}
+        content={aiContent}
+        setContent={setAiContent}
+        title="Edit AI Content"
       />
 
 <TasksEditor

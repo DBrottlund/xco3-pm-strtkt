@@ -27,6 +27,8 @@ const Layout = ({ children }) => {
 
   const [lateLoad, setlateLoad] = useState(false);
 
+  const [newRequestPopupShow, setNewRequestPopupShow] = useState(false);
+
   useEffect(() => {
     setlateLoad(true);
   });
@@ -36,7 +38,10 @@ const Layout = ({ children }) => {
         <div style={{ display: `${lateLoad ? "block" : "none"}` }}>
           <Switcher />
           <div className="page">
-            <Header />
+            <Header 
+            setNewRequestPopupShow={setNewRequestPopupShow} 
+            newRequestPopupShow={newRequestPopupShow} 
+            />
             <Sidebar />
             <div className="content">
               <div className="main-content" onClick={Bodyclickk}>

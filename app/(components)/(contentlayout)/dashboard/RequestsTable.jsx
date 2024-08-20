@@ -15,29 +15,38 @@ import {
 } from "@/shared/actions";
 // import  modifyRequest  from "./modifyRequest";
 
-const modifyRequest = async (request) => {
-  try {
-    const deadline = await calculateFutureDate(request.dueAfterTime, request.startedAt);
-    const deadlinePercent = await calculateWorkHoursPassed(request.startedAt, deadline);
-    const allTags = [...(request.productTags || []), ...(request.initiativesTags || [])];
+// const modifyRequest = async (request) => {
+//   try {
+//     const deadline = await calculateFutureDate(request.dueAfterTime, request.startedAt);
+//     const deadlinePercent = await calculateWorkHoursPassed(request.startedAt, deadline);
+//     const allTags = [...(request.productTags || []), ...(request.initiativesTags || [])];
 
-    return {
-      ...request,
-      deadline,
-      deadlinePercent,
-      allTags,
-    };
-  } catch (error) {
-    console.error("Error in modifyRequest:", error);
-    return request;
-  }
-};
+//     return {
+//       ...request,
+//       deadline,
+//       deadlinePercent,
+//       allTags,
+//     };
+//   } catch (error) {
+//     console.error("Error in modifyRequest:", error);
+//     return request;
+//   }
+// };
 
-const RequestsTable = () => {
-  const [isOverlayVisible, setOverlayVisible] = useState(false);
-  const [postData, setPostData] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [rowData, setRowData] = useState([]);
+const RequestsTable = ({
+  setNewRequestPopupShow,
+  newRequestPopupShow,
+  postData,
+  rowData,
+  setPostData,
+  setRowData,
+  isOverlayVisible,
+  setOverlayVisible
+
+}) => {
+  // const [postData, setPostData] = useState(null);
+  // const [users, setUsers] = useState([]);
+  // const [rowData, setRowData] = useState([]);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
 
@@ -84,6 +93,18 @@ const RequestsTable = () => {
       field: "assignee",
       headerName: "Assignee",
       filter: true,
+      // cellRenderer: (p) => (
+      //   <>        
+      //   <div class="md:block hidden dropdown-profile"><p class="font-semibold mb-0 leading-none text-[#536485] text-[0.813rem] "> {`${p.data.assignee.firstName} ${p.data?.assignee.lastName}`}</p><span class="opacity-[0.7] font-normal text-[#536485] block text-[0.6875rem] ">{`${p.data?.assigneeType}`}</span></div>
+      //   <div className="flex flex-col justify-start">
+      //     <div className="">
+         
+           
+      //     </div>
+      //     <div className="text-gray-500">{`${p.data.assigneeType}`}</div>
+      //   </div></>
+
+      //   ),
       valueGetter: (params) => `${params.data.assignee.firstName} ${params.data.assignee.lastName}`,
       width: 150,
     },
@@ -125,24 +146,11 @@ const RequestsTable = () => {
     },
   ];
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const [requests, fetchedUsers] = await Promise.all([fetchRequests(), fetchUsers()]);
-        const modifiedRequests = await Promise.all(requests.map(modifyRequest));
-        setRowData(modifiedRequests);
-        setUsers(fetchedUsers);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    }
 
-    fetchData();
-  }, []);
 
   return (
     <>
-      <div className="ag-theme-quartz" style={{ height: 500 }}>
+    {rowData && (  <div className="ag-theme-quartz" style={{ height: 500 }}>
         <AgGridReact
 getRowHeight={(params) => { 
 const h = (params.data.allTags?.length / 2) * 36;
@@ -150,7 +158,8 @@ const h = (params.data.allTags?.length / 2) * 36;
 }}          columnDefs={colDefs}
           rowData={rowData}
         />
-      </div>
+      </div>)}
+    
       {confirmDelete !== null && (
         <>
           {/* Overlay */}
@@ -176,14 +185,14 @@ const h = (params.data.allTags?.length / 2) * 36;
           </div>
         </>
       )}
-      <RequestEditSidebar
+      {/* <RequestEditSidebar
         isVisible={isOverlayVisible}
         setIsVisible={setOverlayVisible}
         postData={postData}
         setRowData={setRowData}
         rowData={rowData}
         users={users}
-      />
+      /> */}
     </>
   );
 };

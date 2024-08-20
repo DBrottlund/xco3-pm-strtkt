@@ -1,6 +1,11 @@
 'use server'
 import { PrismaClient } from '@prisma/client';
 import { DateTime } from 'luxon';
+import { revalidatePath } from "next/cache";
+import { NextResponse } from 'next/server';
+import { JSDOM } from 'jsdom';
+
+
 
 const prisma = new PrismaClient();
 
@@ -109,6 +114,7 @@ export async function saveRequest(data) {
         assignee: { connect: { id: data.assigneeId } },
         assignedBy: { connect: { id: data.assignedById } },
         createdBy: { connect: { id: data.createdById } },
+        percentComplete: data.percentComplete || 0,
         assigneeType: data.assigneeType || "USER",
         productTags: data.productTags || [],
         // initiativesTags: data.initiativesTags,
@@ -140,6 +146,15 @@ export async function saveRequest(data) {
         createdBy: true,
       },
     });
+
+    revalidatePath(
+      "/(components)/(contentlayout)/dashboard",
+      "page"
+    );
+    revalidatePath(
+      "/dashboard",
+      'page'
+    );
 
     return newRequest;
   } catch (error) {
@@ -205,6 +220,15 @@ export async function createTasks(tasks) {
       await updateRequestPercentComplete(newTasks[0].requestId);
     }
     
+    revalidatePath(
+      "/(components)/(contentlayout)/dashboard",
+      "page"
+    );
+    revalidatePath(
+      "/dashboard",
+      'page'
+    );
+
     return { success: true, data: newTasks };
   } catch (error) {
     console.error('Error creating tasks:', error);
@@ -279,4 +303,138 @@ async function updateRequestPercentComplete(requestId) {
   } catch (error) {
     console.error('Error updating request percentComplete:', error);
   }
+}
+
+export async function processTextToRequest(text) {
+  if (!text) {
+    return { error: 'No text provided' };
+  }
+
+  try {
+    const response = await fetch('https://poe.nimblefi.com/ask-bot', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json;charset=UTF-8',
+        'Accept': 'application/json, text/plain, */*',
+      },
+      body: JSON.stringify({
+        question: text,
+        bot: "deleg8"
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return { response: data.Response };
+
+  } catch (error) {
+    console.error('Request failed:', error);
+    return { error: 'Request failed', message: error.message };
+  }
+}
+
+export async function findTasks(htmlContent = '', requestId = '') {
+
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
+
+  const taskList = document.querySelector('ol');
+  if (!taskList) {
+    console.log('No ordered list found in the HTML content');
+    return [];
+  }
+
+  const tasks = Array.from(taskList.children).map((li) => {
+    const titleElement = li.querySelector('strong');
+    const title = titleElement ? titleElement.textContent : '';
+    
+    // Remove the title from the text content
+    let taskText = li.textContent || '';
+    if (title) {
+      taskText = taskText.replace(title, '').trim();
+    }
+    
+    // Remove the bullet points and nested list items
+    taskText = taskText.replace(/^[•\-]\s*/gm, '').trim();
+
+    return { title, taskText, requestId };
+  });
+
+  return tasks;
+}
+
+export async function createAiTasksAction(html, requestId) {
+const tasks = await findTasks(html, requestId);
+createTasks(tasks);
+
+} 
+
+export async function createAiInstructions(htmlContent = '') {
+
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
+
+  // Extract project name
+  const projectElement = Array.from(document.querySelectorAll('p strong')).find(el => 
+    el.textContent?.trim() === 'Project:'
+  );
+  const project = projectElement ? projectElement.parentElement?.textContent?.replace('Project:', '').trim() : '';
+
+  // Extract task overview
+  const taskOverviewElement = Array.from(document.querySelectorAll('p strong')).find(el => 
+    el.textContent?.trim() === 'Task Overview:'
+  );
+  let taskOverview = '';
+  if (taskOverviewElement) {
+    const taskOverviewParagraph = taskOverviewElement.parentElement?.nextElementSibling;
+    taskOverview = taskOverviewParagraph ? taskOverviewParagraph.textContent || '' : '';
+  }
+
+  // Construct the instructions
+  const instructions = `
+<p><strong>Project:</strong> ${project}</p>
+<hr>
+${project && `<p><strong>Project:</strong></p>
+  <p>${project}</p>`}
+${taskOverview && `<p><strong>Task Overview:</strong></p>
+<p>${taskOverview}</p>`}
+  `.trim();
+
+
+
+  return instructions;
+}
+
+export async function createAiNotes(htmlContent) {
+
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
+
+  // Find the ordered list
+  const ol = document.querySelector('ol');
+
+  if (!ol) {
+    console.log('No ordered list found in the HTML content');
+    return 'No Notes, no tasks'; // Return empty string if no ordered list is found
+  }
+
+  // Get all elements after the ordered list
+  let currentElement = ol.nextElementSibling;
+  let notesContent = '';
+
+  while (currentElement) {
+    notesContent += currentElement.outerHTML;
+    currentElement = currentElement.nextElementSibling;
+  }
+
+  // If no content was found after the list, return an empty string
+  if (!notesContent.trim()) {
+    console.log('No content found after the ordered list');
+    return 'No Notes';
+  }
+
+  return notesContent;
 }
