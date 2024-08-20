@@ -149,7 +149,7 @@ const NewRequestPopup = ({
       requestOriginal: originalRequest,
       requestIntro: instructions || instructionsFromAi,
       requestOutro: notes || notesFromAi,
-      requestAIProcessed: requestAIProcessed || [],
+      requestAIProcessed: requestAIProcessed || 'No AI generated content',
       startedAt: DateTime.now().setZone("America/Chicago"),
       createdById: userId || currentUser.id,
       assignedById: userId || currentUser.id,
@@ -299,7 +299,7 @@ const NewRequestPopup = ({
                   Request Prompt
                 </label>
               </div>
-              <div className="flex justify-center w-3/6">
+              <div className="flex justify-center w-4/6">
                 <div>
                   <button
                     onClick={getAiRequestBody}
@@ -382,15 +382,22 @@ const NewRequestPopup = ({
                   </div>
                 </div>
               </div>
+              <div className="flex justify-center gap-8">
                   <button
                      disabled={isSaving}
                     type="submit"
-                    className={`mt-6 w-1/2 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                    className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
                       isSaving ? "opacity-50 cursor-not-allowed" : ""
                     }`}
                   >
-                    Save Request
+                    {isSaving ? (
+                      <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
+                    ) : (
+                      <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
+                    )}
+                    {isSaving ? "Saving..." : "Save Request"}
                   </button>
+                  </div>
                 </form>
               </Dialog.Panel>
             </Transition.Child>

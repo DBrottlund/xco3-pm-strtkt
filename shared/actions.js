@@ -395,8 +395,6 @@ export async function createAiInstructions(htmlContent = '') {
 
   // Construct the instructions
   const instructions = `
-<p><strong>Project:</strong> ${project}</p>
-<hr>
 ${project && `<p><strong>Project:</strong></p>
   <p>${project}</p>`}
 ${taskOverview && `<p><strong>Task Overview:</strong></p>
