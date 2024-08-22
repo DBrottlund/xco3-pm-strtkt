@@ -1,14 +1,21 @@
 import React from "react";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { useSessionContext } from "@/app/(components)/(contentlayout)/layout";
+
 
 export default (props) => {
   //    detruct props
   const { data, value, handleShowOverlay, deleteRequest } = props;
+  const { session, status } = useSessionContext();
 
+	if (status === "loading" || status === "unauthenticated") {
+		return <div>Loading...</div>;
+	  }
+	
   return (
     <div className="flex justify-center items-center gap-2 py-2">
       <button
-      onClick={() => handleShowOverlay(data)}
+        onClick={() => handleShowOverlay(data, session?.user)}
         type="button"
         aria-label="button"
         className="ti-btn ti-btn-icon bg-primary/20 text-primary !border hover:bg-primary hover:text-white !rounded-full ti-btn-wave edit-button-b"

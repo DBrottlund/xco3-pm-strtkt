@@ -145,7 +145,7 @@ const NewRequestPopup = ({
       title: title,
       assigneeType: assigneeType,
       status: status,
-      assigneeId: userId || currentUser.id,
+      assigneeId: assigneeId || currentUser.id,
       requestOriginal: originalRequest,
       requestIntro: instructions || instructionsFromAi,
       requestOutro: notes || notesFromAi,

@@ -9,8 +9,9 @@ import calculateFutureDate from "./calculateFutureDate";
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed";
 import RequestEditSidebar from "./EditRequestSidebar";
 import {fetchRequests, fetchUsers} from "@/shared/actions";
+import { useSessionContext } from "@/app/(components)/(contentlayout)/layout";
+import Link from "next/link";
 
-import { useSession } from "next-auth/react";
 
 const modifyRequest = async (request) => {
 	try {
@@ -32,7 +33,26 @@ const modifyRequest = async (request) => {
   
 
 const Projects = () => {
-const { data: session } = useSession();
+  const { session, status } = useSessionContext();
+
+	if (status === "loading") {
+		return <div>Loading...</div>;
+	  }
+	
+	  if (status === "unauthenticated") {
+		return (
+      <Fragment>
+
+    <div>
+      Not logged in
+      </div>
+      <Link href="/api/auth/signin" >
+      Sign in
+      </Link>
+      </Fragment>
+      )
+	  }
+
 
 const [isOverlayVisible, setOverlayVisible] = useState(false);
   const [isNewReqPopupOpen, setIsNewReqPopupOpen] = useState(false);

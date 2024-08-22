@@ -1,17 +1,25 @@
 "use client";
+import React, { createContext, useContext } from 'react';
 import PrelineScript from "@/app/Prelinescript";
 import Backtotop from "@/shared/layout-components/backtotop/backtotop";
 import Footer from "@/shared/layout-components/footer/footer";
 import Header from "@/shared/layout-components/header/header";
 import Sidebar from "@/shared/layout-components/sidebar/sidebar";
-import Switcher from "@/shared/layout-components/switcher/switcher";
 import { ThemeChanger } from "@/shared/redux/action";
 import store from "@/shared/redux/store";
 import { Fragment, useState, useEffect } from "react";
 import { connect } from "react-redux";
+import { useSession } from "next-auth/react";
+
+// Create a context for the session
+const SessionContext = createContext(null);
+
+// Export the custom hook to use the session context
+export const useSessionContext = () => useContext(SessionContext);
 
 const Layout = ({ children }) => {
   const [MyclassName, setMyClass] = useState("");
+  const { data: session, status } = useSession();
 
   const Bodyclickk = () => {
     const theme = store.getState();
@@ -26,21 +34,24 @@ const Layout = ({ children }) => {
   };
 
   const [lateLoad, setlateLoad] = useState(false);
-
   const [newRequestPopupShow, setNewRequestPopupShow] = useState(false);
 
   useEffect(() => {
     setlateLoad(true);
-  });
+  }, []);
+
+  if (status === "loading") {
+    return <div>Loading session...</div>;
+  }
+
   return (
-    <>
+    <SessionContext.Provider value={{ session, status }}>
       <Fragment>
         <div style={{ display: `${lateLoad ? "block" : "none"}` }}>
-          <Switcher />
           <div className="page">
             <Header 
-            setNewRequestPopupShow={setNewRequestPopupShow} 
-            newRequestPopupShow={newRequestPopupShow} 
+              setNewRequestPopupShow={setNewRequestPopupShow} 
+              newRequestPopupShow={newRequestPopupShow} 
             />
             <Sidebar />
             <div className="content">
@@ -54,7 +65,7 @@ const Layout = ({ children }) => {
           <PrelineScript />
         </div>
       </Fragment>
-    </>
+    </SessionContext.Provider>
   );
 };
 

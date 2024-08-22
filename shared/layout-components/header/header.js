@@ -6,14 +6,24 @@ import { connect } from "react-redux";
 import store from "@/shared/redux/store";
 import Modalsearch from "../modal-search/modalsearch";
 import { basePath } from "@/next.config";
-import { useSession } from "next-auth/react";
+// import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import AuthButton from "@/app/api/auth/AuthButton.client";
-import InitialsAvatar from 'react-initials-avatar';
 import 'react-initials-avatar/lib/ReactInitialsAvatar.css';
+import { useSessionContext } from "@/app/(components)/(contentlayout)/layout";
+import Avatar from 'react-avatar';
+
 
 const Header = ({ local_varaiable, ThemeChanger }) => {
-	const { data: session, status } = useSession();
+	const { session, status } = useSessionContext();
+
+	if (status === "loading") {
+		return <div>Loading header...</div>;
+	  }
+	
+	  if (status === "unauthenticated") {
+		return <div>Not logged in</div>;
+	  }
 
 	// const [passwordshow1, setpasswordshow1] = useState(false);
 
@@ -318,7 +328,7 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 									<i className="bx bx-search-alt-2 header-link-icon"></i>
 								</button>
 							</div> */}
-						
+{/* 						
 							<div className="header-element header-theme-mode hidden !items-center sm:block !py-[1rem] md:!px-[0.65rem] px-2" onClick={() => ToggleDark()}>
 								<button aria-label="anchor"
 									className="hs-dark-mode-active:hidden flex hs-dark-mode group flex-shrink-0 justify-center items-center gap-2  rounded-full font-medium transition-all text-xs dark:hover:bg-black/20 dark:text-[#8c9097] dark:text-white/50 dark:hover:text-white dark:focus:ring-white/10 dark:focus:ring-offset-white/10"
@@ -330,7 +340,7 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 									data-hs-theme-click-value="light">
 									<i className="bx bx-sun header-link-icon"></i>
 								</button>
-							</div>
+							</div> */}
 
 							{/* <div className="header-element header-apps dark:text-[#8c9097] dark:text-white/50 py-[1rem] md:px-[0.65rem] px-2 hs-dropdown ti-dropdown md:!block !hidden [--placement:bottom-left]">
 
@@ -428,8 +438,22 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 								</div>
 							</div> */}
 
-							<div className="header-element md:!px-[0.65rem] px-2 hs-dropdown !items-center ti-dropdown [--placement:bottom-left]">
-							{status === "authenticated" ? (<InitialsAvatar className="hs-dropdown-toggle initial-avatar ti-dropdown-toggle bg-blue" id="dropdown-profile" name={session.user.name} />) : (<button id="dropdown-profile" type="button"
+							<div className="gap-2 header-element md:!px-[0.65rem] px-2 hs-dropdown !items-center ti-dropdown [--placement:bottom-left]">
+							{status === "authenticated" ? (
+ <button
+//  onClick={() => openModal(item)}
+ className="avatar avatar-sm avatar-rounded"
+>
+ <Avatar
+   name={`${session.user.name}`}
+   size='30'
+   round={true}
+   src={session.user.profilePicture || undefined}
+ />
+</button>
+
+
+							) : (<button id="dropdown-profile" type="button"
 									className="hs-dropdown-toggle ti-dropdown-toggle">
 									<img className="inline-block rounded-full " src={`${process.env.NODE_ENV === "production" ? basePath : ""}/assets/images/faces/9.jpg`} width="32" height="32" alt="Image Description" />
 								</button>) }
@@ -442,8 +466,8 @@ const Header = ({ local_varaiable, ThemeChanger }) => {
 					
                       </p>
                       <span className="opacity-[0.7] font-normal text-[#536485] block text-[0.6875rem] ">
-                        {/* {session.user.role } */}
-						Project Manager
+                        {session.user.role }
+						{/* Project Manager */}
                       </span>
                     </>
                   ) : (

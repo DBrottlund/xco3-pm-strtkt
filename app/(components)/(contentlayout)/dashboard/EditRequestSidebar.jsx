@@ -1,7 +1,6 @@
 "use client";
 
 import React, { Fragment, useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 
 import { Transition, Dialog, Disclosure } from "@headlessui/react";
 import {
@@ -9,11 +8,13 @@ import {
   updateTask,
   deleteTask,
   updateRequest,
+  setStatus
 } from "@/shared/actions";
 import { FaPlus, FaPlusCircle, FaTrash, FaChevronUp } from "react-icons/fa";
 import dynamic from "next/dynamic";
 import UserDropdown from "@/shared/components/UserDropdown";
 import StatusBadgeRenderer from './StatusBadgeRenderer';
+import { useSessionContext } from "@/app/(components)/(contentlayout)/layout";
 
 import calculateFutureDate from "./calculateFutureDate";
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed";
@@ -68,6 +69,26 @@ const RequestEditSidebar = ({
     return null;
   }
 
+  const { session, status } = useSessionContext();
+
+	if (status === "loading") {
+		return <div>Loading...</div>;
+	  }
+	
+	  if (status === "unauthenticated") {
+		return (
+      <Fragment>
+
+    <div>
+      Not logged in
+      </div>
+      <Link href="/api/auth/signin" >
+      Sign in
+      </Link>
+      </Fragment>
+      )
+	  }
+
   const handleUserSelect = (userId) => {
     setAssigneeId(userId);
   };
@@ -82,7 +103,6 @@ const RequestEditSidebar = ({
     postData?.turnaroundTime?.timeUnit || "HOUR"
   );
 
-  const { data: session } = useSession();
 
   const [currentUser, setCurrentUser] = useState(session?.user);
   
@@ -93,7 +113,7 @@ const RequestEditSidebar = ({
     postData?.assigneeType ?? ""
   );
   const [assigneeId, setAssigneeId] = useState(postData?.assigneeId ?? "");
-  const [status, setStatus] = useState(postData?.status ?? "Request");
+  const [reqStatus, setReqStatus] = useState(postData?.status ?? "Request");
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [originalRequest, setOriginalRequest] = useState(
     postData?.requestOriginal ?? ""
@@ -141,7 +161,7 @@ const RequestEditSidebar = ({
       setNotes(postData.requestOutro ?? "");
       setTasks(postData.tasks ?? []);
       setCurrentUser(session?.user);
-      setStatus(postData.status ?? "Request"); 
+      setReqStatus(postData.status ?? "Request"); 
       const existingProducts = postData.productTags || [];
       const selectedOptions = productDropdownOptions.filter(option => 
         existingProducts.includes(option.value)
@@ -162,7 +182,7 @@ const RequestEditSidebar = ({
   };
 
   const handleStatusChange = (e) => {
-    setStatus(e.target.value);
+    setReqStatus(e.target.value);
   };
 
   const handleProductChange = (selectedOptions) => {
@@ -176,7 +196,7 @@ const RequestEditSidebar = ({
     const updatedData = {
       title,
       assigneeType,
-      status: status,
+      status: reqStatus,
       assigneeId: assigneeId,
       assignee: { connect: { id: assigneeId } },
       assignedById: currentUser.id,
@@ -603,6 +623,13 @@ const RequestEditSidebar = ({
     );
   };
 
+  const handleClose = (user, setIsVisible, data) => {
+    console.log(data, user);
+    if (data.status == 'Request' && user.role == 'PM')
+      setStatus(data.id, 'Viewed', user);
+    setIsVisible(false);
+} 
+
   return (
     <>
       <Transition
@@ -620,7 +647,7 @@ const RequestEditSidebar = ({
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-2xl text-gray-50 font-bold">Edit Request</h2>
               <button
-                onClick={() => setIsVisible(false)}
+                onClick={() => handleClose(session.user,setIsVisible, postData)}
                 className="text-gray-50 hover:text-gray-100 transition-colors"
               >
                 <svg
@@ -678,7 +705,7 @@ const RequestEditSidebar = ({
                 </label>
                 <div className="relative">
                   <select
-                    value={status}
+                    value={reqStatus}
                     onChange={handleStatusChange}
                     className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
                   >
@@ -815,7 +842,7 @@ const RequestEditSidebar = ({
               </div>
             </div>
             <div className="flex flex-col justify-end"></div>
-            <div className="flex justify-left items-center mt-6 ">
+            <div className="flex justify-right items-center mt-6 ">
               <button
                 onClick={handleSave}
                 disabled={isSaving}

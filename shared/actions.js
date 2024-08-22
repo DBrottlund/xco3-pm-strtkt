@@ -20,6 +20,14 @@ export async function fetchRequests() {
       dueAfterTime: true,
       turnaroundTime: true,
       assignee: true,
+      assigneeHistory: {
+        include: {
+          user: true
+        },
+        orderBy: {
+          position: 'asc'
+        }
+      },
       assignedBy: true,
       createdBy: true,
       changeLog: true,
@@ -46,9 +54,56 @@ export async function fetchUsers() {
   }
 }
 
+export async function setStatus(requestId, newStatus, user) {
+
+  try {
+    // Start a transaction
+    const result = await prisma.$transaction(async (prisma) => {
+      // Update the request status
+      const updatedRequest = await prisma.request.update({
+        where: { id: requestId },
+        data: { 
+          status: newStatus,
+          // If the new status is COMPLETED, set the completedAt timestamp
+          ...(newStatus === 'Completed' && { completedAt: new Date() }),
+        },
+      });
+
+      // Create a log entry for this status change
+      const logEntry = await prisma.log.create({
+        data: {
+          requestId: requestId,
+          action: 'STATUS_CHANGE',
+          details: `Status changed to ${newStatus} by user ${user.firstName} ${user.lastName} (${user.email})`,
+        },
+      });
+
+      return { updatedRequest, logEntry };
+    });
+
+    // Revalidate the paths where requests and logs are displayed
+    revalidatePath("/dashboard", "page");
+
+    return { success: true, result };
+  } catch (error) {
+    console.error('Error setting status:', error);
+    return { success: false, error: 'Failed to set status' };
+  }
+}
+
+
+
 export async function updateRequest(id, data) {
   console.log("Received data:", data);
   try {
+    // First, fetch the current request to get the current assignee history length
+    const currentRequest = await prisma.request.findUnique({
+      where: { id },
+      include: { assigneeHistory: true }
+    });
+
+    const newPosition = currentRequest.assigneeHistory.length;
+
     const updatedRequest = await prisma.request.update({
       where: { id },
       data: {
@@ -79,7 +134,18 @@ export async function updateRequest(id, data) {
             timeNumber: data.turnaroundTime.timeNumber,
           },
         },
-       
+        
+        // Always update assignee history when there's a new assignee
+        ...(data.assigneeId && data.assigneeId !== currentRequest.assigneeId
+          ? {
+            assigneeHistory: {
+              create: {
+                userId: data.assigneeId,
+                position: newPosition
+              }
+            }
+          }
+          : {}),
       },
       include: {
         dueAfterTime: true,
@@ -87,6 +153,14 @@ export async function updateRequest(id, data) {
         assignee: true,
         assignedBy: true,
         createdBy: true,
+        assigneeHistory: {
+          include: {
+            user: true
+          },
+          orderBy: {
+            position: 'asc'
+          }
+        },
       },
     });
 
@@ -96,6 +170,7 @@ export async function updateRequest(id, data) {
     throw error;
   }
 }
+
 
 export async function saveRequest(data) {
   console.log("Received data:", data);
@@ -109,15 +184,13 @@ export async function saveRequest(data) {
         requestAIProcessed: data?.requestAIProcessed,
         percentComplete: data.percentComplete || 0,
         status: data.status || "Request",
-        startedAt: data.startedAt || DateTime.now().setZone('America/Chicago'),
+        startedAt: data.startedAt || DateTime.now().setZone('America/Chicago').toJSDate(),
         completedTasks: data.completedTasks || [],
-        assignee: { connect: { id: data.assigneeId } },
-        assignedBy: { connect: { id: data.assignedById } },
+        assignee: data.assigneeId ? { connect: { id: data.assigneeId } } : undefined,
+        assignedBy: data.assignedById ? { connect: { id: data.assignedById } } : undefined,
         createdBy: { connect: { id: data.createdById } },
-        percentComplete: data.percentComplete || 0,
         assigneeType: data.assigneeType || "USER",
         productTags: data.productTags || [],
-        // initiativesTags: data.initiativesTags,
         dueAfterTime: {
           create: {
             timeUnit: data.dueAfterTime.timeUnit,
@@ -130,12 +203,13 @@ export async function saveRequest(data) {
             timeNumber: data?.turnaroundTime.timeNumber,
           },
         },
-        // tasks: {
-        //   create: data.tasks.map(task => ({
-        //     title: task.title,
-        //     taskText: task.taskText,
-        //   })),
-        // },
+        // Add the initial assignee to the assignee history
+        assigneeHistory: data.assigneeId ? {
+          create: {
+            userId: data.assigneeId,
+            position: 0  // This is the first entry, so position is 0
+          }
+        } : undefined,
       },
       include: {
         tasks: false,
@@ -144,17 +218,19 @@ export async function saveRequest(data) {
         assignee: true,
         assignedBy: true,
         createdBy: true,
+        assigneeHistory: {
+          include: {
+            user: true
+          },
+          orderBy: {
+            position: 'asc'
+          }
+        },
       },
     });
 
-    revalidatePath(
-      "/(components)/(contentlayout)/dashboard",
-      "page"
-    );
-    revalidatePath(
-      "/dashboard",
-      'page'
-    );
+    revalidatePath("/(components)/(contentlayout)/dashboard", "page");
+    revalidatePath("/dashboard", 'page');
 
     return newRequest;
   } catch (error) {
@@ -164,13 +240,30 @@ export async function saveRequest(data) {
 }
 
 
-
 export async function deleteRequest(id) {
   try {
-    const deletedRequest = await prisma.request.delete({
-      where: { id },
+    // Use a transaction to ensure all operations succeed or fail together
+    const result = await prisma.$transaction(async (prisma) => {
+      // First, delete all AssigneeHistoryEntry records associated with this request
+      await prisma.assigneeHistoryEntry.deleteMany({
+        where: { requestId: id }
+      });
+
+      // Then delete the request and its associated tasks and logs
+      const deletedRequest = await prisma.request.delete({
+        where: { id },
+        include: {
+          tasks: true,
+          changeLog: true
+        }
+      });
+
+      return deletedRequest;
     });
-    return deletedRequest;
+
+    console.log(`Deleted request ${id} along with ${result.tasks.length} tasks, ${result.changeLog.length} log entries, and all associated AssigneeHistoryEntry records`);
+
+    return result;
   } catch (error) {
     console.error("Error deleting request:", error);
     throw error;
@@ -435,4 +528,122 @@ export async function createAiNotes(htmlContent) {
   }
 
   return notesContent;
+}
+
+export async function createLog(
+  requestId,
+  action,
+  details
+) {
+
+  try {
+    const newLog = await prisma.log.create({
+      data: {
+        requestId,
+        action,
+        details,
+      },
+    });
+
+    // Revalidate the path where logs are displayed
+    // revalidatePath('/logs');
+
+    return { success: true, log: newLog };
+  } catch (error) {
+    console.error('Error creating log:', error);
+    return { success: false, error: 'Failed to create log' };
+  }
+}
+
+export async function fetchLogs(page = 1, pageSize = 10) {
+
+  try {
+    const totalLogs = await prisma.log.count();
+    const totalPages = Math.ceil(totalLogs / pageSize);
+
+    const logs = await prisma.log.findMany({
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        request: true,
+      },
+    });
+
+    return {
+      success: true,
+      logs,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalLogs,
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching logs:', error);
+    return { success: false, error: 'Failed to fetch logs' };
+  }
+}
+
+export async function getLogsByRequestId(requestId) {
+
+  try {
+    const logs = await prisma.log.findMany({
+      where: {
+        requestId: requestId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      include: {
+        request: true,
+      },
+    });
+
+    return { success: true, logs };
+  } catch (error) {
+    console.error('Error fetching logs by request ID:', error);
+    return { success: false, error: 'Failed to fetch logs for the given request ID' };
+  }
+}
+
+export async function removeAssigneeFromHistory(requestId, assigneeId) {
+  try {
+    // First, fetch the current request to check the current assignee
+    const currentRequest = await prisma.request.findUnique({
+      where: { id: requestId },
+      select: { assigneeId: true }
+    });
+
+    // Check if the assignee to be removed is the current assignee
+    if (currentRequest.assigneeId === assigneeId) {
+      return { 
+        success: false, 
+        error: 'Cannot remove the current assignee from history' 
+      };
+    }
+
+    // If not the current assignee, proceed with removal
+    const updatedRequest = await prisma.request.update({
+      where: { id: requestId },
+      data: {
+        assigneeHistory: {
+          disconnect: { id: assigneeId }
+        }
+      },
+      include: {
+        assigneeHistory: true
+      }
+    });
+
+    // Revalidate the paths where requests are displayed
+    revalidatePath("/dashboard", "page");
+
+    return { success: true, updatedRequest };
+  } catch (error) {
+    console.error('Error removing assignee from history:', error);
+    return { success: false, error: 'Failed to remove assignee from history' };
+  }
 }
