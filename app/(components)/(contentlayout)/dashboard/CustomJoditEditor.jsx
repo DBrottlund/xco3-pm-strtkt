@@ -7,96 +7,101 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
 });
 
 
-const configJot = {
-    readonly: false,
-    toolbar: true,
-    spellcheck: true,
-    language: "en",
-    toolbarButtonSize: "medium",
-    toolbarAdaptive: false,
-    showCharsCounter: false,
-    showWordsCounter: false,
-    showXPathInStatusbar: false,
-    buttons: [
-      'bold',
-      'italic',
-      'underline',
-      '|',
-      'ul',
-      'ol',
-      '|',
-      'paragraph', // Make sure this is included
-      'outdent',
-      'indent',
-      '|',
-      'link',
-      '|',
-      'undo',
-      'redo',
-      '|',
-      'source'
-    ],
-    buttonsXS: [
-      'bold',
-      'italic',
-      'underline',
-      '|',
-      'ul',
-      'ol',
-      '|',
-      'paragraph',
-      'undo',
-      'redo',
-      'source'
-    ],
-    removeButtons: [
-      'fullsize',
-      'about',
-      'video',
-      'print',
-      'table',
-      'superscript',
-      'subscript',
-      'file',
-    ],
-    useAceEditor: false,
-    controls: {
-      paragraph: {
-        list: {
-          'p': 'Normal',
-          'h1': 'Heading 1',
-          'h2': 'Heading 2',
-          'h3': 'Heading 3',
-          'h4': 'Heading 4',
-          'code': 'Code'
-        }
-      }
-    },
-    disablePlugins: 'add-new-line',
-    events: {
 
-      click: function(e) {
-        console.log('Clicked element:', e.target);
-      },
-      change: function() {
-        console.log('Content changed');
-      }
-    }
-  };
-  
 
   
 
-  const CustomJoditEditor = ({ value, onChange, setContent }) => {
-    
-    return (
+  const CustomJoditEditor = ({ value, handelBlur, setContent }) => {
+      const configJot = {
+          readonly: false,
+          toolbar: true,
+          spellcheck: true,
+          language: "en",
+          toolbarButtonSize: "medium",
+          toolbarAdaptive: false,
+          showCharsCounter: false,
+          showWordsCounter: false,
+          showXPathInStatusbar: false,
+          buttons: [
+              'bold',
+              'italic',
+              'underline',
+              '|',
+              'ul',
+              'ol',
+              '|',
+              'paragraph', // Make sure this is included
+              'outdent',
+              'indent',
+              '|',
+              'link',
+              '|',
+              'undo',
+              'redo',
+              '|',
+              'source'
+          ],
+          buttonsXS: [
+              'bold',
+              'italic',
+              'underline',
+              '|',
+              'ul',
+              'ol',
+              '|',
+              'paragraph',
+              'undo',
+              'redo',
+              'source'
+          ],
+          removeButtons: [
+              'fullsize',
+              'about',
+              'video',
+              'print',
+              'table',
+              'superscript',
+              'subscript',
+              'file',
+          ],
+          useAceEditor: false,
+          controls: {
+              paragraph: {
+                  list: {
+                      'p': 'Normal',
+                      'h1': 'Heading 1',
+                      'h2': 'Heading 2',
+                      'h3': 'Heading 3',
+                      'h4': 'Heading 4',
+                      'code': 'Code'
+                  }
+              }
+          },
+          disablePlugins: 'add-new-line',
+          events: {
+
+              // click: function(e) {
+              //   console.log('Clicked element:', e.target);
+              // },
+
+              blur: function(e) {
+                  console.log('Content blurred', e.target.innerHTML);
+                  // setContent(e.target.innerHTML);
+                  handelBlur(e.target.innerHTML);
+              },
+
+          }
+      };
+
+      return (
       <div className="jodit-wrapper">
         <JoditEditor
           value={value}
           config={configJot}
-          onBlur={onChange}
-        setContent={setContent}
-          onChange={(newContent) => {}}
+          // handleBlur={handelBlur}
+
+        // setContent={setContent}
+
         />
         <style jsx global >
         {`

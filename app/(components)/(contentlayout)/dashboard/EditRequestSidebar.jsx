@@ -358,40 +358,38 @@ const RequestEditSidebar = ({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel
+                  className="w-full max-w-4xl transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
-                  as="h3"
-                  className="text-lg font-medium leading-6 text-gray-900 mb-4"
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900 mb-4"
                 >
                   {title}
                 </Dialog.Title>
                 <div className="mt-2">
 
                   <CustomJoditEditor
-                    value={localContent}
-                    config={configJot}
-                    tabIndex={1}
-                    setContent={setLocalContent}
-                    onChange={(newContent) => setLocalContent(newContent)}
-                    onBlur={(newContent) => setLocalContent(newContent)}
+                      value={localContent}
+                      tabIndex={1}
+                      handelBlur={(newContent) => setLocalContent(newContent)}
                   />
                 </div>
 
                 <div className="mt-6 flex justify-end space-x-3">
-                <button
-            type="button"
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-            onClick={handleSave}
-          >
-            Save
-          </button>
-          <button
-            type="button"
-            className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-            onClick={handleCancel}
-          >
-            Cancel
-          </button>
+                  <button
+                      type="button"
+                      className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
+                      onClick={handleSave}
+                  >
+                    Save
+                  </button>
+                  <button
+                      type="button"
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                      onClick={handleCancel}
+                  >
+                    Cancel
+                  </button>
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -399,17 +397,20 @@ const RequestEditSidebar = ({
         </div>
       </Dialog>
     </Transition>
-  )};
+    )
+  };
 
-  const TasksEditor = ({ isOpen, setIsOpen, requestId }) => {
-    const [localTasks, setLocalTasks] = useState(tasks);
+  const TasksEditor = ({isOpen, setIsOpen, requestId, tasks, setTasks, setInstructions, instructions}) => {
+    const [localTasks, setLocalTasks] = useState(tasks || []);
+    const [localInstructions, setLocalInstructions] = useState(instructions || '');
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
-  
+
     useEffect(() => {
+      console.log("TasksEditor tasks:", tasks);
       setLocalTasks(tasks);
     }, [tasks]);
-  
+
     const handleTaskChange = (taskId, field, value) => {
       setLocalTasks(prevTasks => 
         prevTasks.map(task => 
@@ -477,6 +478,7 @@ const RequestEditSidebar = ({
         }
   
         setTasks(localTasks);
+        setInstructions(localInstructions);
         setIsOpen(false);
       } catch (err) {
         console.error("Error in saveTasks:", err);
@@ -484,6 +486,11 @@ const RequestEditSidebar = ({
       } finally {
         setIsSaving(false);
       }
+    };
+
+    const handleInstructionsBlur = (newContent) => {
+      // console.log("New instructions:", newContent);
+      setLocalInstructions(newContent);
     };
   
     return (
@@ -516,103 +523,169 @@ const RequestEditSidebar = ({
                 leaveFrom="opacity-100 scale-100"
                 leaveTo="opacity-0 scale-95"
               >
-                <Dialog.Panel className="w-full max-w-7xl transform overflow-hidden rounded-2xl text-gray-50 !bg-[#111c43] p-6 text-left align-middle shadow-xl transition-all">
+                <Dialog.Panel
+                    className="w-full max-w-7xl transform overflow-hidden rounded-2xl text-gray-50 !bg-[#111c43] p-6 text-left align-middle shadow-xl transition-all">
                   <Dialog.Title
-                    as="div"
-                    className="flex justify-between text-lg font-medium leading-6 text-gray-50 mb-4"
+                      as="div"
+                      className="flex justify-between text-lg font-medium leading-6 text-gray-50 mb-4"
                   >
-                    <div>Edit Tasks</div>
-                    <div className="flex justify-end space-x-3">
+                    <div>Instructions & Tasks Editor</div>
+                    <div className=" w-1/2 flex justify-end space-x-3">
+
+
                       <button
-                        onClick={addTask}
-                        className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors"
+                          onClick={saveTasks}
+                          disabled={isSaving}
+                          type="button"
+                          className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                              isSaving ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
                       >
-                        Add Task
+                        {isSaving ? (
+                            <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
+                        ) : (
+                            <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
+                        )}
+                        {isSaving ? "Saving..." : "Update"}
                       </button>
+
+
                       <button
-                        type="button"
-                        className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors"
-                        onClick={saveTasks}
+                          onClick={() => setIsOpen(false)}
+                          type="button"
+                          className="mt-6 w-1/10 py-2 justify-center text-center ti-btn ti-btn-warning-full label-ti-btn !rounded-full"
                       >
-                        Save
+                        <i className="ri-close-line label-ti-btn-icon me-2 !rounded-full"></i>
+                        Close
                       </button>
-                      <button
-                        type="button"
-                        className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
-                        onClick={() => setIsOpen(false)}
-                      >
-                        Cancel
-                      </button>
+
+
                     </div>
                   </Dialog.Title>
+                  <div className="mt-2">
+
+                    <CustomJoditEditor
+                        value={localInstructions}
+                        tabIndex={1}
+                        handelBlur={handleInstructionsBlur}
+                        // onChange={(newContent) => setInstructions(newContent)}
+                        // onBlur={(newContent) => setInstructions(newContent)}
+                    />
+                  </div>
                   <div className="mt-2 flex flex-col flex-wrap gap-6">
-                    {localTasks.map((task) => (
-                      <Disclosure key={task.id}>
-                        {({ open }) => (
-                                 <>
-                                 <div className="w-full px-4 py-3 flex items-center justify-between text-left">
-                                   <div className="flex items-center space-x-3 text-[#111c34] flex-grow">
-                                     <input
-                                       type="checkbox"
-                                       checked={!!task.completedAt}
-                                       onChange={(e) => handleTaskChange(task.id, "completedAt", e.target.checked)}
-                                       className="w-5 h-5 rounded bg-gray-300 text-blue-600 focus:ring-blue-500"
-                                     />
-                                     <input
-                                       type="text"
-                                       value={task.title}
-                                       onChange={(e) => handleTaskChange(task.id, 'title', e.target.value)}
-                                       placeholder="Task title"
-                                       className="flex-grow bg-white rounded-lg text-grey-700 border-none focus:outline-none focus:ring-0"
-                                     />
-                                   </div>
-                                   <div className="flex items-center space-x-2">
-                                     <button
-                                       onClick={(e) => {
-                                         e.preventDefault();
-                                         e.stopPropagation();
-                                         removeTask(task.id);
-                                       }}
-                                       className="p-1 text-gray-400 hover:text-red-500 focus:outline-none"
-                                     >
-                                       <FaTrash className="w-4 h-4" />
-                                     </button>
-                                     <Disclosure.Button className="focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
-                                       <FaChevronUp
-                                         className={`${
-                                           open ? 'transform rotate-180' : ''
-                                         } w-4 h-4 text-gray-500`}
-                                       />
-                                     </Disclosure.Button>
-                                   </div>
-                                 </div>
-                                 <Transition
-                                   enter="transition duration-100 ease-out"
-                                   enterFrom="transform scale-95 opacity-0"
-                                   enterTo="transform scale-100 opacity-100"
-                                   leave="transition duration-75 ease-out"
-                                   leaveFrom="transform scale-100 opacity-100"
-                                   leaveTo="transform scale-95 opacity-0"
-                                 >
-                                   <Disclosure.Panel className="px-4 pb-3 ml-5 mr-5">
+                    {localTasks?.length > 0 && localTasks.map((task) => (
+                        <Disclosure key={task.id}>
+                          {({open}) => (
+                              <>
+                                <div className="w-full px-4 py-3 flex items-center justify-between text-left">
+                                  <div className="flex items-center space-x-3 text-[#111c34] flex-grow">
+                                    <input
+                                        type="checkbox"
+                                        checked={!!task.completedAt}
+                                        onChange={(e) => handleTaskChange(task.id, "completedAt", e.target.checked)}
+                                        className="w-5 h-5 rounded bg-gray-300 text-blue-600 focus:ring-blue-500"
+                                    />
+                                    <input
+                                        type="text"
+                                        value={task.title}
+                                        onChange={(e) => handleTaskChange(task.id, 'title', e.target.value)}
+                                        placeholder="Task title"
+                                        className="flex-grow bg-white rounded-lg text-grey-700 border-none focus:outline-none focus:ring-0"
+                                    />
+                                  </div>
+                                  <div className="flex items-center space-x-2">
+                                    <button
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          removeTask(task.id);
+                                        }}
+                                        className="p-1 text-gray-400 hover:text-red-500 focus:outline-none"
+                                    >
+                                      <FaTrash className="w-4 h-4"/>
+                                    </button>
+                                    <Disclosure.Button
+                                        className="focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
+                                      <FaChevronUp
+                                          className={`${
+                                              open ? 'transform rotate-180' : ''
+                                          } w-4 h-4 text-gray-500`}
+                                      />
+                                    </Disclosure.Button>
+                                  </div>
+                                </div>
+                                <Transition
+                                    enter="transition duration-100 ease-out"
+                                    enterFrom="transform scale-95 opacity-0"
+                                    enterTo="transform scale-100 opacity-100"
+                                    leave="transition duration-75 ease-out"
+                                    leaveFrom="transform scale-100 opacity-100"
+                                    leaveTo="transform scale-95 opacity-0"
+                                >
+                                  <Disclosure.Panel className="px-4 pb-3 ml-5 mr-5">
                                      <textarea
-                                       value={task.taskText}
-                                       onChange={(e) => handleTaskChange(task.id, 'taskText', e.target.value)}
-                                       placeholder="Task details"
-                                       className="w-full mt-1 ml-3  px-3 py-2 text-[#111c34] border rounded-lg focus:outline-none focus:border-blue-500"
-                                       rows="3"
+                                         value={task.taskText}
+                                         onChange={(e) => handleTaskChange(task.id, 'taskText', e.target.value)}
+                                         placeholder="Task details"
+                                         className="w-full mt-1 ml-3  px-3 py-2 text-[#111c34] border rounded-lg focus:outline-none focus:border-blue-500"
+                                         rows="3"
                                      />
-                                   </Disclosure.Panel>
-                                 </Transition>
-                               </>
-                        )}
-                      </Disclosure>
+                                  </Disclosure.Panel>
+                                </Transition>
+                              </>
+                          )}
+                        </Disclosure>
                     ))}
+
+                    <div className="flex justify-end space-x-3 w-full">
+
+
+                      <button
+                          onClick={addTask}
+                          type="button"
+                          className="mt-6 w-1/10 py-2 justify-center text-center ti-btn ti-btn-info-full label-ti-btn !rounded-full"
+                      >
+                        <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
+                        Add Task
+                      </button>
+
+
+
+
+                      <button
+                          onClick={saveTasks}
+                          disabled={isSaving}
+                          type="button"
+                          className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                              isSaving ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                      >
+                        {isSaving ? (
+                            <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
+                        ) : (
+                            <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
+                        )}
+                        {isSaving ? "Saving..." : "Update"}
+                      </button>
+
+
+                      <button
+                          onClick={() => setIsOpen(false)}
+                          type="button"
+                          className="mt-6 w-1/10 py-2 justify-center text-center ti-btn ti-btn-warning-full label-ti-btn !rounded-full"
+                      >
+                        <i className="ri-close-line label-ti-btn-icon me-2 !rounded-full"></i>
+                      Close
+                      </button>
+
+
+
+                    </div>
                   </div>
                   {error && (
-                    <div className="mt-4 text-red-500 bg-red-100 p-2 rounded-md">
-                      {error}
-                    </div>
+                      <div className="mt-4 text-red-500 bg-red-100 p-2 rounded-md">
+                        {error}
+                      </div>
                   )}
                 </Dialog.Panel>
               </Transition.Child>
@@ -628,24 +701,25 @@ const RequestEditSidebar = ({
     if (data.status == 'Request' && user.role == 'PM')
       setStatus(data.id, 'Viewed', user);
     setIsVisible(false);
-} 
+  }
 
   return (
-    <>
-      <Transition
-        show={isVisible}
-        as={Fragment}
-        enter="transform transition ease-in-out duration-500 sm:duration-700"
-        enterFrom="translate-x-full"
-        enterTo="translate-x-0"
-        leave="transform transition ease-in-out duration-500 sm:duration-700"
-        leaveFrom="translate-x-0"
-        leaveTo="translate-x-full"
-      >
-        <div className="fixed top-0 right-0 h-full w-full sm:w-[600px] !bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
-          <div className="m-2 p-6 !bg-[#111c43] rounded-lg ">
-            <div className="flex justify-between items-center mb-3">
-              <h2 className="text-2xl text-gray-50 font-bold">Edit Request</h2>
+      <>
+        <Transition
+            show={isVisible}
+            as={Fragment}
+            enter="transform transition ease-in-out duration-500 sm:duration-700"
+            enterFrom="translate-x-full"
+            enterTo="translate-x-0"
+            leave="transform transition ease-in-out duration-500 sm:duration-700"
+            leaveFrom="translate-x-0"
+            leaveTo="translate-x-full"
+        >
+          <div
+              className="fixed top-0 right-0 h-full w-full sm:w-[600px] !bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
+            <div className="m-2 p-6 !bg-[#111c43] rounded-lg ">
+              <div className="flex justify-between items-center mb-3">
+                <h2 className="text-2xl text-gray-50 font-bold">Edit Request</h2>
               <button
                 onClick={() => handleClose(session.user,setIsVisible, postData)}
                 className="text-gray-50 hover:text-gray-100 transition-colors"
@@ -803,56 +877,56 @@ const RequestEditSidebar = ({
                   rows={4}
                 />
               </div>
-              <div className="flex flex-row space-x-4 justify-around m-4">
-                <button
-                  onClick={() => setIsInstructionsEditorOpen(true)}
-                  type="button"
-                  className="ti-btn ti-btn-warning-full label-ti-btn !rounded-full"
-                >
-                  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                  Instructions
-                </button>
+              <div className="flex flex-row space-x-4 justify-around mt-24">
+                {/*<button*/}
+                {/*  onClick={() => setIsInstructionsEditorOpen(true)}*/}
+                {/*  type="button"*/}
+                {/*  className="ti-btn ti-btn-warning-full label-ti-btn !rounded-full"*/}
+                {/*>*/}
+                {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
+                {/*  Instructions*/}
+                {/*</button>*/}
 
                 <button
                   onClick={() => setIsTasksEditorOpen(true)}
                   type="button"
-                  className="ti-btn ti-btn-info-full label-ti-btn !rounded-full"
+                  className="w-1/2 ti-btn ti-btn-info-full label-ti-btn !rounded-full"
                 >
                   <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                  Tasks
+                  Instructions & Tasks Editor
                 </button>
 
-                <button
-                  onClick={() => setIsNotesEditorOpen(true)}
-                  type="button"
-                  className="ti-btn ti-btn-success-full label-ti-btn !rounded-full"
-                >
-                  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                  Notes
-                </button>
+                {/*<button*/}
+                {/*  onClick={() => setIsNotesEditorOpen(true)}*/}
+                {/*  type="button"*/}
+                {/*  className="ti-btn ti-btn-success-full label-ti-btn !rounded-full"*/}
+                {/*>*/}
+                {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
+                {/*  Notes*/}
+                {/*</button>*/}
 
                 <button
                   onClick={() => setIsAIEditorOpen(true)}
                   type="button"
-                  className="ti-btn ti-btn-primary-full label-ti-btn !rounded-full"
+                  className="w-1/2 ti-btn ti-btn-primary-full label-ti-btn !rounded-full"
                 >
                   <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                  AI Request
+                  Request Editor
                 </button>
               </div>
             </div>
             <div className="flex flex-col justify-end"></div>
-            <div className="flex justify-right items-center mt-6 ">
+            <div className="w-full flex justify-center items-center mt-[75px] ">
               <button
                 onClick={handleSave}
                 disabled={isSaving}
                 type="button"
-                className={`mt-6 w-1/3 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                className={`mt-6 w-1/2 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
                   isSaving ? "opacity-50 cursor-not-allowed" : ""
                 }`}
               >
                 {isSaving ? (
-                  <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
+                  <i className="ri-save-line text-[1rem] animate-spin me-2 !rounded-full"></i>
                 ) : (
                   <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
                 )}
@@ -863,34 +937,38 @@ const RequestEditSidebar = ({
         </div>
       </Transition>
 
-      <EditorPopup
-        isOpen={isInstructionsEditorOpen}
-        setIsOpen={setIsInstructionsEditorOpen}
-        content={instructions}
-        setContent={setInstructions}
-        title="Edit Instructions"
-      />
+      {/*<EditorPopup*/}
+      {/*  isOpen={isInstructionsEditorOpen}*/}
+      {/*  setIsOpen={setIsInstructionsEditorOpen}*/}
+      {/*  content={instructions}*/}
+      {/*  setContent={setInstructions}*/}
+      {/*  title="Edit Instructions"*/}
+      {/*/>*/}
 
-      <EditorPopup
-        isOpen={isNotesEditorOpen}
-        setIsOpen={setIsNotesEditorOpen}
-        content={notes}
-        setContent={setNotes}
-        title="Edit Notes"
-      />
+      {/*<EditorPopup*/}
+      {/*  isOpen={isNotesEditorOpen}*/}
+      {/*  setIsOpen={setIsNotesEditorOpen}*/}
+      {/*  content={notes}*/}
+      {/*  setContent={setNotes}*/}
+      {/*  title="Edit Notes"*/}
+      {/*/>*/}
 
 <EditorPopup
         isOpen={isAIEditorOpen}
         setIsOpen={setIsAIEditorOpen}
         content={aiContent}
         setContent={setAiContent}
-        title="Edit AI Content"
+        title="Request Editor"
       />
 
 <TasksEditor
         isOpen={isTasksEditorOpen}
         setIsOpen={setIsTasksEditorOpen}
         requestId={postData.id}
+        tasks={tasks}
+        setTasks={setTasks}
+        instructions={instructions}
+        setInstructions={setInstructions}
       />
     </>
   );
