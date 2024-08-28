@@ -6,7 +6,7 @@ import { DateTime } from "luxon";
 
 import { Dialog, Transition } from "@headlessui/react";
 import { Fragment } from "react";
-import { saveRequest as saveRequestAction } from "@/shared/actions";
+import {createAiAssignee, createAiTitle, saveRequest as saveRequestAction} from "@/shared/actions";
 
 import UserDropdown from "@/shared/components/UserDropdown";
 import { marked } from 'marked';
@@ -37,14 +37,14 @@ const productDropdownOptions = [
 
 
 const NewRequestPopup = ({
-  isOpen,
-  onClose,
-  setIsOpen,
-  session,
-  setRowData,
-  rowData,
-  users,
-}) => {
+                           isOpen,
+                           onClose,
+                           setIsOpen,
+                           session,
+                           setRowData,
+                           rowData,
+                           users,
+                         }) => {
   const [title, setTitle] = useState("");
   const [assigneeType, setAssigneeType] = useState("");
   const [status, setStatus] = useState("Request");
@@ -61,7 +61,7 @@ const NewRequestPopup = ({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
-  const [requestAIProcessed, setReqestAIProcessed] = useState('');
+  const [requestAIProcessed, setRequestAIProcessed] = useState('');
 
 
 
@@ -82,15 +82,21 @@ const NewRequestPopup = ({
   const getAiRequestBody = async () => {
     setIsGeneratingAI(true);
     try {
-      
+
       const response = await processTextToRequest(originalRequest);
-      
+
       if (response.error) {
         console.error('Error generating AI text:', response.error);
         // Optionally, you can set an error state here to display to the user
       } else {
         const htmlContent = marked(response.response || '');
-        setReqestAIProcessed(htmlContent);
+        setRequestAIProcessed(htmlContent);
+        const titleFromAi = await createAiTitle(htmlContent || "")
+        const assigneeFromAi = await createAiAssignee(htmlContent || "")
+        // console.log("Title From AI:", titleFromAi);
+        setTitle(titleFromAi || 'No Title');
+        setAssigneeType(assigneeFromAi || 'TBD');
+
       }
     } catch (error) {
       console.error('Error in getAiRequestBody:', error);
@@ -104,18 +110,18 @@ const NewRequestPopup = ({
     if (currentUser) {
       setUserId(currentUser.id);
     }
-    console.log(currentUser);
+    // console.log(currentUser);
   }, [currentUser, session]);
 
   const modifyRequest = async (request, tasks = []) => {
     try {
       const deadline = await calculateFutureDate(
-        request.dueAfterTime,
-        request.startedAt
+          request.dueAfterTime,
+          request.startedAt
       );
       const deadlinePercent = await calculateWorkHoursPassed(
-        request.startedAt,
-        deadline
+          request.startedAt,
+          deadline
       );
       const allTags = [
         ...(request.productTags || []),
@@ -140,15 +146,17 @@ const NewRequestPopup = ({
     setIsSaving(true);
     setError(null);
     const instructionsFromAi = await createAiInstructions(requestAIProcessed || '');
-    const notesFromAi = await createAiNotes(requestAIProcessed || "");
+    // const notesFromAi = await createAiNotes(requestAIProcessed || "");
+
     const updatedData = {
-      title: title,
+
+      title: title || titleFromAi,
       assigneeType: assigneeType,
       status: status,
       assigneeId: assigneeId || currentUser.id,
       requestOriginal: originalRequest,
       requestIntro: instructions || instructionsFromAi,
-      requestOutro: notes || notesFromAi,
+      requestOutro: notes,
       requestAIProcessed: requestAIProcessed || 'No AI generated content',
       startedAt: DateTime.now().setZone("America/Chicago"),
       createdById: userId || currentUser.id,
@@ -166,7 +174,7 @@ const NewRequestPopup = ({
 
     try {
       const updatedRequest = await saveRequestAction(updatedData);
-      const createTasksFromAI = await createAiTasksAction(updatedRequest.requestAIProcessed || '', updatedRequest.id) && updatedRequest.requestAIProcessed != '' ;
+      // const createTasksFromAI = await createAiTasksAction(updatedRequest.requestAIProcessed || '', updatedRequest.id) && updatedRequest.requestAIProcessed != '' ;
       const updatedRow = await modifyRequest(updatedRequest);
       setRowData([...rowData, updatedRow]);
       // setRowData(updatedRowData);
@@ -182,229 +190,229 @@ const NewRequestPopup = ({
   };
 
   return (
-    <Transition appear show={isOpen} as={Fragment}>
-      <Dialog
-        as="div"
-        className="relative z-[999999999999] !bg-[#111c43] "
-        onClose={() => setIsOpen(false)}
-      >
-        <Transition.Child
-          as={Fragment}
-          enter="ease-out duration-300"
-          enterFrom="opacity-0"
-          enterTo="opacity-100"
-          leave="ease-in duration-200"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+      <Transition appear show={isOpen} as={Fragment}>
+        <Dialog
+            as="div"
+            className="relative z-[999999999999] !bg-[#111c43] "
+            onClose={() => setIsOpen(false)}
         >
-          <div className="fixed inset-0 bg-black bg-opacity-25" />
-        </Transition.Child>
-
-        <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
-            <Transition.Child
+          <Transition.Child
               as={Fragment}
               enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
+              enterFrom="opacity-0"
+              enterTo="opacity-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
-            >
-              <Dialog.Panel className="w-full transform overflow-hidden !bg-[#111c43] rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all sm:w-4/5 sm:h-4/5 max-w-6xl">
-                <form
-                  className="space-y-4"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    handleSaveRequest();
-                  }}
-                >
-                  <div className="flex gap-4">
-                    <div className="w-3/6">
-                      <label className="block text-sm font-medium text-gray-50 mb-1">
-                        Title
-                      </label>
-                      <input
-                        type="text"
-                        value={title}
-                        onChange={(e) => setTitle(e.target.value)}
-                        className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
-                      />
+              leaveFrom="opacity-100"
+              leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                  as={Fragment}
+                  enter="ease-out duration-300"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="ease-in duration-200"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full transform overflow-hidden !bg-[#111c43] rounded-lg bg-white p-6 text-left align-middle shadow-xl transition-all sm:w-4/5 sm:h-4/5 max-w-6xl">
+                  <form
+                      className="space-y-4"
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        handleSaveRequest();
+                      }}
+                  >
+                    <div className="flex gap-4">
+                      <div className="w-3/6">
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Title
+                        </label>
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
+                        />
+                      </div>
+                      <div className="w-2/6">
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Products • Initiatives
+                        </label>
+                        <div className="relative">
+                          <Select
+                              classNamePrefix="Select2"
+                              className="ti-form-select rounded-sm !p-0 !text-[#111c43]"
+                              isMulti
+                              options={productDropdownOptions}
+                              onChange={handleProductChange}
+                          />
+                        </div>
+                      </div>
+                      <div className="w-1/6">
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Status
+                        </label>
+                        <div className="relative">
+                          <select
+                              value={status}
+                              onChange={handleStatusChange}
+                              className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none !text-[#111c43]"
+                          >
+                            {["Request", "Viewed", "Assigned", "PastDue", "Merged", "Completed"].map((statusOption) => (
+                                <option key={statusOption} value={statusOption}>
+                                  {statusOption}
+                                </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
                     </div>
-                    <div className="w-2/6">
-                      <label className="block text-sm font-medium text-gray-50 mb-1">
-                        Products • Initiatives
-                      </label>
-                      <div className="relative">
-                        <Select
-                          classNamePrefix="Select2"
-                          className="ti-form-select rounded-sm !p-0 !text-[#111c43]"
-                          isMulti
-                          options={productDropdownOptions}
-                          onChange={handleProductChange}
+
+
+                    <div className="flex gap-2 ">
+
+                      <div className="w-1/5">
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Assignee
+                        </label>
+                        <UserDropdown
+                            users={users}
+                            selectedUserId={assigneeId}
+                            setAssigneeId={setAssigneeId}
+                            onUserSelect={handleUserSelect}
+                            className="!text-[#111c43]"
+                        />
+                      </div>
+                      <div className="w-3/5">
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Assignee Type
+                        </label>
+                        <input
+                            type="text"
+                            value={assigneeType}
+                            onChange={(e) => setAssigneeType(e.target.value)}
+                            className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
                         />
                       </div>
                     </div>
-                    <div className="w-1/6">
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Status
-                </label>
-                <div className="relative">
-                  <select
-                    value={status}
-                    onChange={handleStatusChange}
-                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none !text-[#111c43]"
-                  >
-                    {["Request", "Viewed", "Assigned", "PastDue", "Merged", "Completed"].map((statusOption) => (
-                      <option key={statusOption} value={statusOption}>
-                        {statusOption}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-                  </div>
 
-              
-                   <div className="flex gap-2 ">
-
-                <div className="w-1/5">
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Assignee
-                </label>
-                <UserDropdown
-                  users={users}
-                  selectedUserId={assigneeId}
-                  setAssigneeId={setAssigneeId}
-                  onUserSelect={handleUserSelect}
-                         className="!text-[#111c43]"
-                />
-              </div>
-                    <div className="w-3/5">
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Assignee Type
-                </label>
-                <input
-                  type="text"
-                  value={assigneeType}
-                  onChange={(e) => setAssigneeType(e.target.value)}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
-                />
-              </div>
-              </div>
-
-                  <div className="flex flex-row space-x-2 justify-start gap-2 mx-2">
-              <div className="w-1/6 relative">
-                <label className="absolute bottom-0 left-0 text-sm font-medium text-gray-50">
-                  Request Prompt
-                </label>
-              </div>
-              <div className="flex justify-center w-4/6">
-                <div>
-                  <button
-                    onClick={getAiRequestBody}
-                    type="button"
-                    disabled={isGeneratingAI}
-                    className={`ti-btn ti-btn-info-full label-ti-btn !rounded-full text-[#111c43] ${
-                      isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
-                    }`}
-                  >
-                    <i className="ri-ai-generate text-[#111c43] label-ti-btn-icon me-2 !rounded-full"></i>
-                    <span className="!text-[#111c43]">
+                    <div className="flex flex-row space-x-2 justify-start gap-2 mx-2">
+                      <div className="w-1/6 relative">
+                        <label className="absolute bottom-0 left-0 text-sm font-medium text-gray-50">
+                          Request Prompt
+                        </label>
+                      </div>
+                      <div className="flex justify-center w-4/6">
+                        <div>
+                          <button
+                              onClick={getAiRequestBody}
+                              type="button"
+                              disabled={isGeneratingAI}
+                              className={`ti-btn ti-btn-info-full label-ti-btn !rounded-full text-[#111c43] ${
+                                  isGeneratingAI ? 'opacity-50 cursor-not-allowed' : ''
+                              }`}
+                          >
+                            <i className="ri-ai-generate text-[#111c43] label-ti-btn-icon me-2 !rounded-full"></i>
+                            <span className="!text-[#111c43]">
                       {isGeneratingAI ? 'Generating...' : 'Generate Tasks and Instructions'}
                     </span>
-                  </button>
-                </div>
-              </div>
-            
-              </div>
-              
-              <textarea
-                    value={originalRequest}
-                    onChange={(e) => setOriginalRequest(e.target.value)}
-                    placeholder="Notes"
-                    className="w-full p-2 border rounded-lg !text-[#111c43]"
-                  />
+                          </button>
+                        </div>
+                      </div>
 
-                  <CustomJoditEditor
-                    value={requestAIProcessed}
-                    onChange={(content) => setReqestAIProcessed(content)}
-                    setContent={setReqestAIProcessed}
-                    className="w-full"
-                  />
-                
-              <div className="flex gap-8"> 
-                <div>
-                  <label className="block text-sm font-medium text-gray-50 mb-1">
-                    Due After
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={dueAfterTimeNumber}
-                      onChange={(e) => setDueAfterTimeNumber(parseInt(e.target.value))}
-                      className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      min="0"
+                    </div>
+
+                    <textarea
+                        value={originalRequest}
+                        onChange={(e) => setOriginalRequest(e.target.value)}
+                        placeholder="Notes"
+                        className="w-full p-2 border rounded-lg !text-[#111c43]"
                     />
-                    <select
-                      value={dueAfterTimeUnit}
-                      onChange={(e) => setDueAfterTimeUnit(e.target.value)}
-                      className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="HOUR">Hour</option>
-                      <option value="DAY">Day</option>
-                      <option value="WEEK">Week</option>
-                    </select>
-                  </div>
-                </div>
-              
-                <div>
-                  <label className="block text-sm font-medium text-gray-50 mb-1">
-                    Turnaround
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={turnaroundTimeNumber}
-                      onChange={(e) => setTurnaroundTimeNumber(parseInt(e.target.value))}
-                      className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
-                      min="0"
+
+                    <CustomJoditEditor
+                        value={requestAIProcessed}
+                        onChange={(content) => setRequestAIProcessed(content)}
+                        setContent={setRequestAIProcessed}
+                        className="w-full"
                     />
-                    <select
-                      value={turnaroundTimeUnit}
-                      onChange={(e) => setTurnaroundTimeUnit(e.target.value)}
-                      className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
-                    >
-                      <option value="HOUR">Hour</option>
-                      <option value="DAY">Day</option>
-                      <option value="WEEK">Week</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-center gap-8">
-                  <button
-                     disabled={isSaving}
-                    type="submit"
-                    className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
-                      isSaving ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    {isSaving ? (
-                      <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
-                    ) : (
-                      <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
-                    )}
-                    {isSaving ? "Saving..." : "Save Request"}
-                  </button>
-                  </div>
-                </form>
-              </Dialog.Panel>
-            </Transition.Child>
+
+                    <div className="flex gap-8">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Due After
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                              type="number"
+                              value={dueAfterTimeNumber}
+                              onChange={(e) => setDueAfterTimeNumber(parseInt(e.target.value))}
+                              className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                              min="0"
+                          />
+                          <select
+                              value={dueAfterTimeUnit}
+                              onChange={(e) => setDueAfterTimeUnit(e.target.value)}
+                              className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          >
+                            <option value="HOUR">Hour</option>
+                            <option value="DAY">Day</option>
+                            <option value="WEEK">Week</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-sm font-medium text-gray-50 mb-1">
+                          Turnaround
+                        </label>
+                        <div className="flex items-center space-x-2">
+                          <input
+                              type="number"
+                              value={turnaroundTimeNumber}
+                              onChange={(e) => setTurnaroundTimeNumber(parseInt(e.target.value))}
+                              className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
+                              min="0"
+                          />
+                          <select
+                              value={turnaroundTimeUnit}
+                              onChange={(e) => setTurnaroundTimeUnit(e.target.value)}
+                              className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 !text-[#111c43]"
+                          >
+                            <option value="HOUR">Hour</option>
+                            <option value="DAY">Day</option>
+                            <option value="WEEK">Week</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-center gap-8">
+                      <button
+                          disabled={isSaving}
+                          type="submit"
+                          className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                              isSaving ? "opacity-50 cursor-not-allowed" : ""
+                          }`}
+                      >
+                        {isSaving ? (
+                            <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
+                        ) : (
+                            <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
+                        )}
+                        {isSaving ? "Saving..." : "Save Request"}
+                      </button>
+                    </div>
+                  </form>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
           </div>
-        </div>
-      </Dialog>
-    </Transition>
+        </Dialog>
+      </Transition>
   );
 };
 

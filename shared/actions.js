@@ -62,7 +62,7 @@ export async function setStatus(requestId, newStatus, user) {
       // Update the request status
       const updatedRequest = await prisma.request.update({
         where: { id: requestId },
-        data: { 
+        data: {
           status: newStatus,
           // If the new status is COMPLETED, set the completedAt timestamp
           ...(newStatus === 'Completed' && { completedAt: new Date() }),
@@ -99,7 +99,7 @@ export async function updateRequest(id, data) {
     // First, fetch the current request to get the current assignee history length
     const currentRequest = await prisma.request.findUnique({
       where: { id },
-      include: { assigneeHistory: true }
+      include: { assigneeHistory: true, tasks: true }
     });
 
     const newPosition = currentRequest.assigneeHistory.length;
@@ -134,18 +134,28 @@ export async function updateRequest(id, data) {
             timeNumber: data.turnaroundTime.timeNumber,
           },
         },
-        
+
         // Always update assignee history when there's a new assignee
         ...(data.assigneeId && data.assigneeId !== currentRequest.assigneeId
-          ? {
-            assigneeHistory: {
-              create: {
-                userId: data.assigneeId,
-                position: newPosition
+            ? {
+              assigneeHistory: {
+                create: {
+                  userId: data.assigneeId,
+                  position: newPosition
+                }
               }
             }
-          }
-          : {}),
+            : {}),
+
+        // Handle tasks update
+        // tasks: {
+        //   deleteMany: {}, // Remove all existing tasks
+        //   create: data.tasks.map(task => ({
+        //     title: task.title,
+        //     taskText: task.taskText,
+        //     completedAt: task.completedAt
+        //   }))
+        // },
       },
       include: {
         dueAfterTime: true,
@@ -161,6 +171,7 @@ export async function updateRequest(id, data) {
             position: 'asc'
           }
         },
+        tasks: false, // Include tasks in the response
       },
     });
 
@@ -170,7 +181,6 @@ export async function updateRequest(id, data) {
     throw error;
   }
 }
-
 
 export async function saveRequest(data) {
   console.log("Received data:", data);
@@ -296,7 +306,7 @@ export async function createTasks(tasks) {
     const createdTasks = await prisma.task.createMany({
       data: tasksToCreate
     });
-    
+
     // Fetch the newly created tasks to get their IDs
     const newTasks = await prisma.task.findMany({
       where: {
@@ -312,14 +322,14 @@ export async function createTasks(tasks) {
     if (newTasks.length > 0 && newTasks[0].requestId) {
       await updateRequestPercentComplete(newTasks[0].requestId);
     }
-    
+
     revalidatePath(
-      "/(components)/(contentlayout)/dashboard",
-      "page"
+        "/(components)/(contentlayout)/dashboard",
+        "page"
     );
     revalidatePath(
-      "/dashboard",
-      'page'
+        "/dashboard",
+        'page'
     );
 
     return { success: true, data: newTasks };
@@ -336,12 +346,12 @@ export async function deleteTask(taskId) {
         id: taskId
       }
     });
-    
+
     // Update the percentComplete for the associated request
     if (deletedTask.requestId) {
       await updateRequestPercentComplete(deletedTask.requestId);
     }
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error deleting task:', error);
@@ -360,12 +370,12 @@ export async function updateTask(taskId, updateData) {
         request: true
       }
     });
-    
+
     // Update the percentComplete for the associated request
     if (updatedTask.requestId) {
       await updateRequestPercentComplete(updatedTask.requestId);
     }
-    
+
     return { success: true, data: updatedTask };
   } catch (error) {
     console.error('Error updating task:', error);
@@ -380,11 +390,11 @@ async function updateRequestPercentComplete(requestId) {
         requestId: requestId
       }
     });
-    
+
     const totalTasks = tasks.length;
     const completedTasks = tasks.filter(task => task.completedAt !== null).length;
     const percentComplete = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-    
+
     await prisma.request.update({
       where: {
         id: requestId
@@ -443,13 +453,13 @@ export async function findTasks(htmlContent = '', requestId = '') {
   const tasks = Array.from(taskList.children).map((li) => {
     const titleElement = li.querySelector('strong');
     const title = titleElement ? titleElement.textContent : '';
-    
+
     // Remove the title from the text content
     let taskText = li.textContent || '';
     if (title) {
       taskText = taskText.replace(title, '').trim();
     }
-    
+
     // Remove the bullet points and nested list items
     taskText = taskText.replace(/^[•\-]\s*/gm, '').trim();
 
@@ -460,43 +470,71 @@ export async function findTasks(htmlContent = '', requestId = '') {
 }
 
 export async function createAiTasksAction(html, requestId) {
-const tasks = await findTasks(html, requestId);
-createTasks(tasks);
+  const tasks = await findTasks(html, requestId);
+  createTasks(tasks);
 
-} 
+}
 
 export async function createAiInstructions(htmlContent = '') {
-
   const dom = new JSDOM(htmlContent);
   const document = dom.window.document;
 
-  // Extract project name
-  const projectElement = Array.from(document.querySelectorAll('p strong')).find(el => 
-    el.textContent?.trim() === 'Project:'
-  );
-  const project = projectElement ? projectElement.parentElement?.textContent?.replace('Project:', '').trim() : '';
+  let instructions = '';
 
-  // Extract task overview
-  const taskOverviewElement = Array.from(document.querySelectorAll('p strong')).find(el => 
-    el.textContent?.trim() === 'Task Overview:'
-  );
-  let taskOverview = '';
-  if (taskOverviewElement) {
-    const taskOverviewParagraph = taskOverviewElement.parentElement?.nextElementSibling;
-    taskOverview = taskOverviewParagraph ? taskOverviewParagraph.textContent || '' : '';
+  // Find the <hr> element
+  const hrElement = document.querySelector('hr');
+
+  if (hrElement) {
+    // Extract content immediately after <hr>
+    let currentElement = hrElement.nextElementSibling;
+    if (currentElement && currentElement.tagName === 'P') {
+      instructions += currentElement.outerHTML;
+    }
+
+    // Find the <ol> element
+    const olElement = document.querySelector('ol');
+
+    if (olElement) {
+      // Extract content after </ol>
+      currentElement = olElement.nextElementSibling;
+      while (currentElement) {
+        instructions += currentElement.outerHTML;
+        currentElement = currentElement.nextElementSibling;
+      }
+    }
   }
 
-  // Construct the instructions
-  const instructions = `
-${project && `<p><strong>Project:</strong></p>
-  <p>${project}</p>`}
-${taskOverview && `<p><strong>Task Overview:</strong></p>
-<p>${taskOverview}</p>`}
-  `.trim();
+  return instructions.trim();
+}
 
+export async function createAiTitle(htmlContent = '') {
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
 
+  // Extract the title
+  const titleElement = document.querySelector('p');
 
-  return instructions;
+  if (titleElement && titleElement.textContent.startsWith('Title:')) {
+    return titleElement.textContent.replace('Title:', '').trim();
+  }
+
+  return '';
+}
+
+export async function createAiAssignee(htmlContent = '') {
+  const dom = new JSDOM(htmlContent);
+  const document = dom.window.document;
+
+  // Extract the assignee
+  const assigneeElement = Array.from(document.querySelectorAll('p')).find(el =>
+      el.textContent?.trim().startsWith('Assignee:')
+  );
+
+  if (assigneeElement) {
+    return assigneeElement.textContent.replace('Assignee:', '').trim();
+  }
+
+  return '';
 }
 
 export async function createAiNotes(htmlContent) {
@@ -531,9 +569,9 @@ export async function createAiNotes(htmlContent) {
 }
 
 export async function createLog(
-  requestId,
-  action,
-  details
+    requestId,
+    action,
+    details
 ) {
 
   try {
@@ -619,9 +657,9 @@ export async function removeAssigneeFromHistory(requestId, assigneeId) {
 
     // Check if the assignee to be removed is the current assignee
     if (currentRequest.assigneeId === assigneeId) {
-      return { 
-        success: false, 
-        error: 'Cannot remove the current assignee from history' 
+      return {
+        success: false,
+        error: 'Cannot remove the current assignee from history'
       };
     }
 
