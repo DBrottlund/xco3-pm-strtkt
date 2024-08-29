@@ -11,7 +11,7 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
 
   
 
-  const CustomJoditEditor = ({ value, handelBlur, setContent }) => {
+  const CustomJoditEditor = ({ value, handelBlur, setContent = () => null, onChange= () => null }) => {
       const configJot = {
           readonly: false,
           toolbar: true,
@@ -98,9 +98,11 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
         <JoditEditor
           value={value}
           config={configJot}
-          // handleBlur={handelBlur}
 
-        // setContent={setContent}
+          onChange={onChange}
+          setContent={setContent}
+
+
 
         />
         <style jsx global >
@@ -138,7 +140,7 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
         }
 
         `}
-        
+
         </style>
       </div>
     );

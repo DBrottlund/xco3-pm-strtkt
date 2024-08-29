@@ -518,6 +518,10 @@ export async function createAiTitle(htmlContent = '') {
     return titleElement.textContent.replace('Title:', '').trim();
   }
 
+  if (titleElement && titleElement.textContent.startsWith('Task Title:')) {
+    return titleElement.textContent.replace('Task Title:', '').trim();
+  }
+
   return '';
 }
 

@@ -174,7 +174,7 @@ const NewRequestPopup = ({
 
     try {
       const updatedRequest = await saveRequestAction(updatedData);
-      // const createTasksFromAI = await createAiTasksAction(updatedRequest.requestAIProcessed || '', updatedRequest.id) && updatedRequest.requestAIProcessed != '' ;
+      const createdTasksFromAI = await createAiTasksAction(updatedRequest.requestAIProcessed || '', updatedRequest.id) && updatedRequest.requestAIProcessed != '' ;
       const updatedRow = await modifyRequest(updatedRequest);
       setRowData([...rowData, updatedRow]);
       // setRowData(updatedRowData);

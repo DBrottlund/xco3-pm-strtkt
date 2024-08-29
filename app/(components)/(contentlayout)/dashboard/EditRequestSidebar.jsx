@@ -133,6 +133,49 @@ const RequestEditSidebar = ({
   const [isAIEditorOpen, setIsAIEditorOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [htmlTasks, setHtmlTasks] = useState('');
+
+  function tasksToHtml(tasks) {
+    const taskItems = tasks.map(task => `
+    <li id="${task.id}">
+      <input type="checkbox" id="checkbox-${task.id}" ${task.completedAt ? 'checked' : ''}>
+      <label for="checkbox-${task.id}">
+        <p><strong>${task.title}</strong></p>
+      </label>
+      <ul>
+        ${task.taskText.split('\n').map(line => `<li>${line}</li>`).join('')}
+      </ul>
+    </li>
+  `).join('');
+
+    return `<ol>${taskItems}</ol>`;
+  }
+
+
+  function htmlToTasks(html) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+    const listItems = doc.querySelectorAll('ol > li');
+
+    return Array.from(listItems).map(li => {
+      const id = li.id;
+      const checkbox = li.querySelector('input[type="checkbox"]');
+      const title = li.querySelector('label p strong').textContent;
+      const taskTextItems = li.querySelectorAll('ul > li');
+      const taskText = Array.from(taskTextItems).map(item => item.textContent).join('\n');
+
+      return {
+        id: id,
+        title: title,
+        taskText: taskText,
+        completedAt: checkbox.checked ? new Date().toISOString() : null,
+        createdAt: new Date().toISOString(), // Note: We can't recover the original createdAt
+        updatedAt: new Date().toISOString(), // Note: We set this to the current time
+        requestId: 'generated-' + Math.random().toString(36).substr(2, 9) // Generating a random requestId
+      };
+    });
+  }
+
 
   const productDropdownOptions = [
     { value: "ONBOARDING", label: "Onboarding" },
@@ -152,6 +195,8 @@ const RequestEditSidebar = ({
 
   useEffect(() => {
     if (postData) {
+      const htmlTasks = tasksToHtml(postData.tasks);
+      setHtmlTasks(htmlTasks);
       setAiContent(postData?.requestAIProcessed ?? '');
       setTitle(postData.title ?? "");
       setAssigneeType(postData.assigneeType ?? "");
@@ -188,6 +233,15 @@ const RequestEditSidebar = ({
   const handleProductChange = (selectedOptions) => {
     setSelectedProducts(selectedOptions);
   };
+
+  const handleHtmlTasksChange = (newContent) => {
+    const tasks = htmlToTasks(newContent);
+    console.log('handleHtmlTasksChange',tasks);
+    console.log('handleHtmlTasksChange',newContent);
+    setTasks(tasks);
+    setHtmlTasks(newContent);
+  };
+
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -716,7 +770,7 @@ const RequestEditSidebar = ({
             leaveTo="translate-x-full"
         >
           <div
-              className="fixed top-0 right-0 h-full w-full sm:w-[600px] !bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
+              className="fixed top-0 right-0 h-full w-full sm:w-3/5 xs:w-full!bg-[#111c43] shadow-lg z-[999999] overflow-y-auto">
             <div className="m-2 p-6 !bg-[#111c43] rounded-lg ">
               <div className="flex justify-between items-center mb-3">
                 <h2 className="text-2xl text-gray-50 font-bold">Edit Request</h2>
@@ -745,212 +799,230 @@ const RequestEditSidebar = ({
                 {error}
               </div>
             )}
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Title
-                </label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                Products • Initiatives
-               </label>
-               <div className="relative">
-               <Select 
-               classNamePrefix='Select2' 
-               className="ti-form-select rounded-sm !p-0" 
-               isMulti 
-               options={productDropdownOptions}
-               value={selectedProducts}
-               onChange={handleProductChange}
-               />
-               </div></div>
-
-              <div className="flex gap-2 ">
+              <div className="space-y-4">
                 <div>
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Status
-                </label>
-                <div className="relative">
-                  <select
-                    value={reqStatus}
-                    onChange={handleStatusChange}
-                    className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                  <label className="block text-sm font-medium text-gray-50 mb-1">
+                    Title
+                  </label>
+                  <input
+                      type="text"
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  />
+                </div>
+
+
+                <div className="flex gap-2 ">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-50 mb-1">
+                      Status
+                    </label>
+                    <div className="relative">
+                      <select
+                          value={reqStatus}
+                          onChange={handleStatusChange}
+                          className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none"
+                      >
+                        {["Request", "Viewed", "Assigned", "PastDue", "Merged", "Completed"].map((statusOption) => (
+                            <option key={statusOption} value={statusOption}>
+                              {statusOption}
+                            </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="w-1/3">
+                    <label className="block text-sm font-medium text-gray-50 mb-1">
+                      Products • Initiatives
+                    </label>
+                    <div className="relative">
+                      <Select
+                          classNamePrefix='Select2'
+                          className="ti-form-select rounded-sm !p-0"
+                          isMulti
+                          options={productDropdownOptions}
+                          value={selectedProducts}
+                          onChange={handleProductChange}
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-50 mb-1">
+                      Assignee Type
+                    </label>
+                    <input
+                        type="text"
+                        value={assigneeType}
+                        onChange={(e) => setAssigneeType(e.target.value)}
+                        className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-50 mb-1">
+                      Assignee
+                    </label>
+                    <UserDropdown
+                        users={userList}
+                        selectedUserId={assigneeId}
+                        setAssigneeId={setAssigneeId}
+                        onUserSelect={handleUserSelect}
+                    />
+                  </div>
+
+                </div>
+
+
+                <div className="flex gap-8">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-50 mb-1">
+                      Due After
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                          type="number"
+                          value={dueAfterTimeNumber}
+                          onChange={(e) => setDueAfterTimeNumber(parseInt(e.target.value))}
+                          className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          min="0"
+                      />
+                      <select
+                          value={dueAfterTimeUnit}
+                          onChange={(e) => setDueAfterTimeUnit(e.target.value)}
+                          className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="HOUR">Hour</option>
+                        <option value="DAY">Day</option>
+                        <option value="WEEK">Week</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-50 mb-1">
+                      Turnaround
+                    </label>
+                    <div className="flex items-center space-x-2">
+                      <input
+                          type="number"
+                          value={turnaroundTimeNumber}
+                          onChange={(e) => setTurnaroundTimeNumber(parseInt(e.target.value))}
+                          className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                          min="0"
+                      />
+                      <select
+                          value={turnaroundTimeUnit}
+                          onChange={(e) => setTurnaroundTimeUnit(e.target.value)}
+                          className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      >
+                        <option value="HOUR">Hour</option>
+                        <option value="DAY">Day</option>
+                        <option value="WEEK">Week</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  {/*<label className="block text-sm font-medium text-gray-50 mb-1">*/}
+                  {/*  Original Request*/}
+                  {/*</label>*/}
+                  {/*<textarea*/}
+                  {/*  value={originalRequest}*/}
+                  {/*  onChange={(e) => setOriginalRequest(e.target.value)}*/}
+                  {/*  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"*/}
+                  {/*  rows={4}*/}
+                  {/*/>*/}
+                  <label className="block text-sm font-medium text-gray-50 mb-1">
+                    Summary
+                  </label>
+                  <CustomJoditEditor
+                      value={instructions}
+                      tabIndex={1}
+                      handelBlur={(newContent) => setInstructions(newContent)}
+                  />
+                  <label className="block text-sm font-medium text-gray-50 mb-1">
+                    Instructions
+                  </label>
+                  <CustomJoditEditor
+                      value={htmlTasks}
+                      tabIndex={1}
+                      handelBlur={(newContent) => handleHtmlTasksChange(newContent)}
+                  />
+                </div>
+                <div className="flex flex-row space-x-4 justify-around mt-24">
+                  {/*<button*/}
+                  {/*  onClick={() => setIsInstructionsEditorOpen(true)}*/}
+                  {/*  type="button"*/}
+                  {/*  className="ti-btn ti-btn-warning-full label-ti-btn !rounded-full"*/}
+                  {/*>*/}
+                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
+                  {/*  Instructions*/}
+                  {/*</button>*/}
+
+                  {/*<button*/}
+                  {/*  onClick={() => setIsTasksEditorOpen(true)}*/}
+                  {/*  type="button"*/}
+                  {/*  className="w-1/2 ti-btn ti-btn-info-full label-ti-btn !rounded-full"*/}
+                  {/*>*/}
+                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
+                  {/*  Instructions & Tasks Editor*/}
+                  {/*</button>*/}
+
+                  {/*<button*/}
+                  {/*  onClick={() => setIsNotesEditorOpen(true)}*/}
+                  {/*  type="button"*/}
+                  {/*  className="ti-btn ti-btn-success-full label-ti-btn !rounded-full"*/}
+                  {/*>*/}
+                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
+                  {/*  Notes*/}
+                  {/*</button>*/}
+
+                  {/*<button*/}
+                  {/*    onClick={() => setIsAIEditorOpen(true)}*/}
+                  {/*    type="button"*/}
+                  {/*    className="w-1/2 ti-btn ti-btn-primary-full label-ti-btn !rounded-full"*/}
+                  {/*>*/}
+                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
+                  {/*  Instructions & Tasks Editor*/}
+                  {/*</button>*/}
+                  <button
+                      onClick={handleSave}
+                      disabled={isSaving}
+                      type="button"
+                      className={`mt-6 w-1/3 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
+                          isSaving ? "opacity-50 cursor-not-allowed" : ""
+                      }`}
                   >
-                    {["Request", "Viewed", "Assigned", "PastDue", "Merged", "Completed"].map((statusOption) => (
-                      <option key={statusOption} value={statusOption}>
-                        {statusOption}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Assignee Type
-                </label>
-                <input
-                  type="text"
-                  value={assigneeType}
-                  onChange={(e) => setAssigneeType(e.target.value)}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Assignee
-                </label>
-                <UserDropdown
-                  users={userList}
-                  selectedUserId={assigneeId}
-                  setAssigneeId={setAssigneeId}
-                  onUserSelect={handleUserSelect}
-                />
-              </div>
-
-              <div className="flex gap-8"> 
-                <div>
-                  <label className="block text-sm font-medium text-gray-50 mb-1">
-                    Due After
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={dueAfterTimeNumber}
-                      onChange={(e) => setDueAfterTimeNumber(parseInt(e.target.value))}
-                      className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      min="0"
-                    />
-                    <select
-                      value={dueAfterTimeUnit}
-                      onChange={(e) => setDueAfterTimeUnit(e.target.value)}
-                      className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="HOUR">Hour</option>
-                      <option value="DAY">Day</option>
-                      <option value="WEEK">Week</option>
-                    </select>
-                  </div>
-                </div>
-              
-                <div>
-                  <label className="block text-sm font-medium text-gray-50 mb-1">
-                    Turnaround
-                  </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={turnaroundTimeNumber}
-                      onChange={(e) => setTurnaroundTimeNumber(parseInt(e.target.value))}
-                      className="w-1/4 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      min="0"
-                    />
-                    <select
-                      value={turnaroundTimeUnit}
-                      onChange={(e) => setTurnaroundTimeUnit(e.target.value)}
-                      className="w-1/2 p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    >
-                      <option value="HOUR">Hour</option>
-                      <option value="DAY">Day</option>
-                      <option value="WEEK">Week</option>
-                    </select>
-                  </div>
+                    {isSaving ? (
+                        <i className="ri-save-line text-[1rem] animate-spin me-2 !rounded-full"></i>
+                    ) : (
+                        <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
+                    )}
+                    {isSaving ? "Saving..." : "Update"}
+                  </button>
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-50 mb-1">
-                  Original Request
-                </label>
-                <textarea
-                  value={originalRequest}
-                  onChange={(e) => setOriginalRequest(e.target.value)}
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  rows={4}
-                />
-              </div>
-              <div className="flex flex-row space-x-4 justify-around mt-24">
-                {/*<button*/}
-                {/*  onClick={() => setIsInstructionsEditorOpen(true)}*/}
-                {/*  type="button"*/}
-                {/*  className="ti-btn ti-btn-warning-full label-ti-btn !rounded-full"*/}
-                {/*>*/}
-                {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
-                {/*  Instructions*/}
-                {/*</button>*/}
-
-                <button
-                  onClick={() => setIsTasksEditorOpen(true)}
-                  type="button"
-                  className="w-1/2 ti-btn ti-btn-info-full label-ti-btn !rounded-full"
-                >
-                  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                  Instructions & Tasks Editor
-                </button>
-
-                {/*<button*/}
-                {/*  onClick={() => setIsNotesEditorOpen(true)}*/}
-                {/*  type="button"*/}
-                {/*  className="ti-btn ti-btn-success-full label-ti-btn !rounded-full"*/}
-                {/*>*/}
-                {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
-                {/*  Notes*/}
-                {/*</button>*/}
-
-                <button
-                  onClick={() => setIsAIEditorOpen(true)}
-                  type="button"
-                  className="w-1/2 ti-btn ti-btn-primary-full label-ti-btn !rounded-full"
-                >
-                  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                  Request Editor
-                </button>
-              </div>
-            </div>
-            <div className="flex flex-col justify-end"></div>
-            <div className="w-full flex justify-center items-center mt-[75px] ">
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                type="button"
-                className={`mt-6 w-1/2 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
-                  isSaving ? "opacity-50 cursor-not-allowed" : ""
-                }`}
-              >
-                {isSaving ? (
-                  <i className="ri-save-line text-[1rem] animate-spin me-2 !rounded-full"></i>
-                ) : (
-                  <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
-                )}
-                {isSaving ? "Saving..." : "Update"}
-              </button>
             </div>
           </div>
-        </div>
-      </Transition>
+        </Transition>
 
-      {/*<EditorPopup*/}
-      {/*  isOpen={isInstructionsEditorOpen}*/}
-      {/*  setIsOpen={setIsInstructionsEditorOpen}*/}
-      {/*  content={instructions}*/}
-      {/*  setContent={setInstructions}*/}
-      {/*  title="Edit Instructions"*/}
-      {/*/>*/}
+        {/*<EditorPopup*/}
+        {/*  isOpen={isInstructionsEditorOpen}*/}
+        {/*  setIsOpen={setIsInstructionsEditorOpen}*/}
+        {/*  content={instructions}*/}
+        {/*  setContent={setInstructions}*/}
+        {/*  title="Edit Instructions"*/}
+        {/*/>*/}
 
-      {/*<EditorPopup*/}
-      {/*  isOpen={isNotesEditorOpen}*/}
-      {/*  setIsOpen={setIsNotesEditorOpen}*/}
-      {/*  content={notes}*/}
-      {/*  setContent={setNotes}*/}
-      {/*  title="Edit Notes"*/}
+        {/*<EditorPopup*/}
+        {/*  isOpen={isNotesEditorOpen}*/}
+        {/*  setIsOpen={setIsNotesEditorOpen}*/}
+        {/*  content={notes}*/}
+        {/*  setContent={setNotes}*/}
+        {/*  title="Edit Notes"*/}
       {/*/>*/}
 
 <EditorPopup
