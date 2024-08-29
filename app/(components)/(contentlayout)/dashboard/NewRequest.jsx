@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import {useState, useEffect, useRef, useCallback} from "react";
 import dynamic from "next/dynamic";
 import { DateTime } from "luxon";
 
@@ -62,6 +62,7 @@ const NewRequestPopup = ({
   const [error, setError] = useState(null);
   const [isGeneratingAI, setIsGeneratingAI] = useState(false);
   const [requestAIProcessed, setRequestAIProcessed] = useState('');
+  const editorRef = useRef(null);
 
 
 
@@ -78,6 +79,10 @@ const NewRequestPopup = ({
   const handleUserSelect = (userId) => {
     setAssigneeId(userId);
   };
+
+  const handleEditorInit = useCallback((editor) => {
+    editorRef.current = editor;
+  }, []);
 
   const getAiRequestBody = async () => {
     setIsGeneratingAI(true);
@@ -147,8 +152,11 @@ const NewRequestPopup = ({
     setError(null);
     const instructionsFromAi = await createAiInstructions(requestAIProcessed || '');
     // const notesFromAi = await createAiNotes(requestAIProcessed || "");
-
-    const updatedData = {
+    let  requestAISaved = requestAIProcessed;
+    if (editorRef.current) {
+      requestAISaved = editorRef.current.value;
+      console.log('Final content on submit:', requestAISaved);
+    }    const updatedData = {
 
       title: title || titleFromAi,
       assigneeType: assigneeType,
@@ -157,7 +165,7 @@ const NewRequestPopup = ({
       requestOriginal: originalRequest,
       requestIntro: instructions || instructionsFromAi,
       requestOutro: notes,
-      requestAIProcessed: requestAIProcessed || 'No AI generated content',
+      requestAIProcessed: requestAIProcessed || requestAISaved,
       startedAt: DateTime.now().setZone("America/Chicago"),
       createdById: userId || currentUser.id,
       assignedById: userId || currentUser.id,
@@ -334,12 +342,23 @@ const NewRequestPopup = ({
                         className="w-full p-2 border rounded-lg !text-[#111c43]"
                     />
 
+                    {/*<CustomJoditEditor*/}
+                    {/*    value={requestAIProcessed}*/}
+                    {/*    onChange={(content) => setRequestAIProcessed(content)}*/}
+                    {/*    setContent={setRequestAIProcessed}*/}
+                    {/*    className="w-full"*/}
+                    {/*/>*/}
+
                     <CustomJoditEditor
+                        ref={editorRef}
                         value={requestAIProcessed}
-                        onChange={(content) => setRequestAIProcessed(content)}
-                        setContent={setRequestAIProcessed}
+                        tabIndex={1}
+                        onBlur={newContent => setRequestAIProcessed(newContent)}
+                        handleEditorInit={handleEditorInit}
                         className="w-full"
                     />
+
+
 
                     <div className="flex gap-8">
                       <div>

@@ -14,7 +14,7 @@ export async function fetchRequests() {
     include: {
       tasks: {
         orderBy: {
-          createdAt: 'asc'
+          position: 'asc'
         }
       },
       dueAfterTime: true,
@@ -91,18 +91,22 @@ export async function setStatus(requestId, newStatus, user) {
   }
 }
 
-
-
 export async function updateRequest(id, data) {
   console.log("Received data:", data);
   try {
-    // First, fetch the current request to get the current assignee history length
+    // First, fetch the current request to get the current assignee history length and existing tasks
     const currentRequest = await prisma.request.findUnique({
       where: { id },
       include: { assigneeHistory: true, tasks: true }
     });
 
     const newPosition = currentRequest.assigneeHistory.length;
+
+    // Prepare task updates
+    const existingTaskIds = currentRequest.tasks.map(task => task.id);
+    const newTasks = data.tasks.filter(task => !existingTaskIds.includes(task.id));
+    const updatedTasks = data.tasks.filter(task => existingTaskIds.includes(task.id));
+    const deletedTaskIds = existingTaskIds.filter(id => !data.tasks.some(task => task.id === id));
 
     const updatedRequest = await prisma.request.update({
       where: { id },
@@ -148,14 +152,29 @@ export async function updateRequest(id, data) {
             : {}),
 
         // Handle tasks update
-        // tasks: {
-        //   deleteMany: {}, // Remove all existing tasks
-        //   create: data.tasks.map(task => ({
-        //     title: task.title,
-        //     taskText: task.taskText,
-        //     completedAt: task.completedAt
-        //   }))
-        // },
+        tasks: {
+          // Delete tasks that are no longer in the data.tasks array
+          deleteMany: {
+            id: { in: deletedTaskIds }
+          },
+          // Update existing tasks
+          update: updatedTasks.map(task => ({
+            where: { id: task.id },
+            data: {
+              title: task.title,
+              taskText: task.taskText,
+              completedAt: task.completedAt,
+              position: task.position // Add position update
+            }
+          })),
+          // Create new tasks
+          create: newTasks.map((task, index) => ({
+            title: task.title,
+            taskText: task.taskText,
+            completedAt: task.completedAt,
+            position: task.position || currentRequest.tasks.length + index + 1 // Assign position for new tasks
+          }))
+        },
       },
       include: {
         dueAfterTime: true,
@@ -171,7 +190,11 @@ export async function updateRequest(id, data) {
             position: 'asc'
           }
         },
-        tasks: false, // Include tasks in the response
+        tasks: {
+          orderBy: {
+            position: 'asc' // Ensure tasks are returned in order
+          }
+        },
       },
     });
 

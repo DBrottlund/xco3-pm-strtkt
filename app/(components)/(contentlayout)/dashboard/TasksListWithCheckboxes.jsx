@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusCircle, X } from 'lucide-react';
 
-const TaskListWithCheckboxes = ({tasks: initialTasks}) => {
+const TaskListWithCheckboxes = ({ tasks: initialTasks, setTasks: setUpdatedTasks, requestId }) => {
     const [tasks, setTasks] = useState(initialTasks);
     const [checkedTasks, setCheckedTasks] = useState({});
     const [newTitle, setNewTitle] = useState('');
@@ -9,11 +9,28 @@ const TaskListWithCheckboxes = ({tasks: initialTasks}) => {
     const [showForm, setShowForm] = useState(false);
     const [editingTask, setEditingTask] = useState(null);
 
+    useEffect(() => {
+        setTasks(initialTasks);
+    }, []);
+
+    useEffect(() => {
+        setUpdatedTasks(tasks);
+    }, [tasks, setUpdatedTasks]);
+
     const handleCheckboxChange = (taskId) => {
-        setCheckedTasks(prevState => ({
-            ...prevState,
-            [taskId]: !prevState[taskId]
-        }));
+        setCheckedTasks(prevState => {
+            const newState = {
+                ...prevState,
+                [taskId]: !prevState[taskId]
+            };
+            return newState;
+        });
+
+        setTasks(prevTasks => prevTasks.map(task =>
+            task.id === taskId
+                ? { ...task, completedAt: !checkedTasks[taskId] ? new Date().toISOString() : null }
+                : task
+        ));
     };
 
     const handleAddTask = (e) => {
@@ -23,7 +40,10 @@ const TaskListWithCheckboxes = ({tasks: initialTasks}) => {
                 id: Date.now().toString(),
                 title: newTitle.trim(),
                 taskText: newTaskText.trim(),
+                completedAt: null,
                 createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+                requestId: requestId
             };
             setTasks(prevTasks => [...prevTasks, newTask]);
             setNewTitle('');
@@ -47,17 +67,15 @@ const TaskListWithCheckboxes = ({tasks: initialTasks}) => {
     const handleUpdateTask = (e) => {
         e.preventDefault();
         setTasks(prevTasks => prevTasks.map(task =>
-            task.id === editingTask.id ? editingTask : task
+            task.id === editingTask.id
+                ? { ...editingTask, updatedAt: new Date().toISOString() }
+                : task
         ));
         setEditingTask(null);
     };
 
     return (
         <div className="space-y-6 bg-white rounded-md shadow-md p-6">
-
-
-
-
             <ol className="space-y-4 list-decimal list-inside">
                 {tasks.map((task, index) => (
                     <li key={task.id} className="flex flex-col items-start">
@@ -86,33 +104,30 @@ const TaskListWithCheckboxes = ({tasks: initialTasks}) => {
                             </form>
                         ) : (
                             <>
-                            <div className="flex items-center space-x-2 w-full">
-
-                                <span>{index + 1}.</span>
-                                <input
-                                    type="checkbox"
-                                    id={`task-${task.id}`}
-                                    checked={checkedTasks[task.id] || false}
-                                    onChange={() => handleCheckboxChange(task.id)}
-                                    className="mt-1"
-                                />
-                                <label htmlFor={`task-${task.id}`} className="flex-1 font-bold">
-                                    {task.title}
-                                </label>
-                                <button onClick={() => handleEditTask(task)}
-                                        className="text-blue-500 hover:text-blue-700">
-                                    Edit
-                                </button>
-                                <button
-                                    onClick={() => handleDeleteTask(task.id)}
-                                    className="text-red-500 hover:text-red-700"
-                                >
-                                    <span className="h-4 w-4" > Remove
-                                </span>
-
-                            </button>
-                            </div>
-                            <p className="text-sm text-gray-600 mt-2 ml-12">{task.taskText}</p>
+                                <div className="flex items-center space-x-2 w-full">
+                                    <span>{index + 1}.</span>
+                                    <input
+                                        type="checkbox"
+                                        id={`task-${task.id}`}
+                                        checked={!!task.completedAt}
+                                        onChange={() => handleCheckboxChange(task.id)}
+                                        className="mt-1"
+                                    />
+                                    <label htmlFor={`task-${task.id}`} className="flex-1 font-bold">
+                                        {task.title}
+                                    </label>
+                                    <button onClick={() => handleEditTask(task)}
+                                            className="text-blue-500 hover:text-blue-700">
+                                        Edit
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeleteTask(task.id)}
+                                        className="text-red-500 hover:text-red-700"
+                                    >
+                                        <span className="h-4 w-4">Remove</span>
+                                    </button>
+                                </div>
+                                <p className="text-sm text-gray-600 mt-2 ml-12">{task.taskText}</p>
                             </>
                         )}
                     </li>

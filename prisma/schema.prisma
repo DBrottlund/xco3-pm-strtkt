@@ -8,9 +8,9 @@ datasource db {
 }
 
 model User {
-  id          String   @id @default(uuid())
-  username    String   @unique
-  email       String   @unique
+  id          String    @id @default(uuid())
+  username    String    @unique
+  email       String    @unique
   password    String
   firstName   String
   lastName    String
@@ -18,105 +18,105 @@ model User {
   address     String?
   lastLogin   DateTime?
   role        Role
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  requestsCreated     Request[] @relation("CreatedRequests")
-  requestsAssigned    Request[] @relation("AssignedRequests")
-  requestsAssignedBy  Request[] @relation("AssignedByRequests")
+  requestsCreated        Request[]              @relation("CreatedRequests")
+  requestsAssigned       Request[]              @relation("AssignedRequests")
+  requestsAssignedBy     Request[]              @relation("AssignedByRequests")
   assigneeHistoryEntries AssigneeHistoryEntry[]
 }
 
 model Request {
-  id                 String   @id @default(uuid())
+  id                 String    @id @default(uuid())
   title              String
   requestIntro       String?
   requestOutro       String?
   requestOriginal    String?
   requestAIProcessed String?
-  createdAt          DateTime @default(now())
+  createdAt          DateTime  @default(now())
   completedAt        DateTime?
-  percentComplete    Float    @default(0)
+  percentComplete    Float     @default(0)
   startedAt          DateTime?
-  updatedAt          DateTime @updatedAt
+  updatedAt          DateTime  @updatedAt
   dueAfterTime       TimeFrame @relation("DueAfterTimeFrame", fields: [dueAfterTimeId], references: [id])
   turnaroundTime     TimeFrame @relation("TurnaroundTimeFrame", fields: [turnaroundTimeId], references: [id])
 
-  dueAfterTimeId     String @unique
-  turnaroundTimeId   String @unique
+  dueAfterTimeId   String @unique
+  turnaroundTimeId String @unique
 
   // Relations
-  tasks              Task[]
-  status             Status
-  completedTasks     String[]
-  assigneeId         String?
-  assignedById       String?
-  createdById        String?
+  tasks          Task[]
+  status         Status
+  completedTasks String[]
+  assigneeId     String?
+  assignedById   String?
+  createdById    String?
 
-  assigneeType       String?
-  assignee           User?    @relation("AssignedRequests", fields: [assigneeId], references: [id])
-  assignedBy         User?    @relation("AssignedByRequests", fields: [assignedById], references: [id])
-  createdBy          User?    @relation("CreatedRequests", fields: [createdById], references: [id])
-  changeLog          Log[]    
+  assigneeType String?
+  assignee     User?   @relation("AssignedRequests", fields: [assigneeId], references: [id])
+  assignedBy   User?   @relation("AssignedByRequests", fields: [assignedById], references: [id])
+  createdBy    User?   @relation("CreatedRequests", fields: [createdById], references: [id])
+  changeLog    Log[]
 
-  productTags        ProductTag[]
-  assigneeHistory    AssigneeHistoryEntry[]
-
+  productTags     ProductTag[]
+  assigneeHistory AssigneeHistoryEntry[]
 }
 
 model AssigneeHistoryEntry {
-  id        String   @id @default(uuid())
-  request   Request  @relation(fields: [requestId], references: [id])
+  id        String  @id @default(uuid())
+  request   Request @relation(fields: [requestId], references: [id])
   requestId String
-  user      User     @relation(fields: [userId], references: [id])
+  user      User    @relation(fields: [userId], references: [id])
   userId    String
   position  Int
 
   @@unique([requestId, position])
 }
 
-// ... (rest of the models remain the same)
-
 model TimeFrame {
-  id                 String   @id @default(uuid())
-  timeUnit           TimeUnit
-  timeNumber         Int
+  id         String   @id @default(uuid())
+  timeUnit   TimeUnit
+  timeNumber Int
 
   // Back-references for relations with Request
-  dueAfterRequest    Request? @relation("DueAfterTimeFrame")
-  turnaroundRequest  Request? @relation("TurnaroundTimeFrame")
+  dueAfterRequest   Request? @relation("DueAfterTimeFrame")
+  turnaroundRequest Request? @relation("TurnaroundTimeFrame")
 }
 
 model Task {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   taskText    String?
+  position    Int
   completedAt DateTime?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
-  requestId   String?
-  request     Request?  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId String?
+  request   Request? @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, position])
 }
 
 model Log {
-  id         String   @id @default(uuid())
-  action     String
-  details    String?
-  createdAt  DateTime @default(now())
-  
+  id        String   @id @default(uuid())
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+
   // Relations
-  requestId  String
-  request    Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId String
+  request   Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 }
 
 enum Role {
   ADMIN
-  PM    // Project Manager
-  PA    // Project Admin
+  PM // Project Manager
+  PA // Project Admin
   ASSIGNEE
 }
 

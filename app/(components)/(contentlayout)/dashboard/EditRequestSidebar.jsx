@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment, useState, useEffect, useRef, useCallback } from "react";
 
 import { Transition, Dialog, Disclosure } from "@headlessui/react";
 import {
@@ -29,6 +29,17 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
   loading: () => <p>Loading editor...</p>,
 });
 
+function calculateTaskCompletionPercentage(tasks) {
+  if (!Array.isArray(tasks) || tasks.length === 0) {
+    return 0;
+  }
+
+  const completedTasks = tasks.filter(task => task.completedAt !== null);
+  const percentComplete = Math.round((completedTasks.length / tasks.length) * 100);
+
+  return Math.min(100, Math.max(0, percentComplete));
+}
+
 const modifyRequest = async (request, tasks = []) => {
   try {
     const deadline = await calculateFutureDate(
@@ -43,9 +54,11 @@ const modifyRequest = async (request, tasks = []) => {
       ...(request.productTags || []),
       ...(request.initiativesTags || []),
     ];
+    const percentComplete = calculateTaskCompletionPercentage(tasks);
 
     return {
       ...request,
+      percentComplete,
       deadline,
       deadlinePercent,
       allTags,
@@ -223,6 +236,9 @@ const RequestEditSidebar = ({
     }
   }, [users]);
 
+  const editorRef = useRef(null);
+
+
   const handleAssigneeChange = (selectedUserId) => {
     setAssigneeId(selectedUserId);
   };
@@ -243,24 +259,86 @@ const RequestEditSidebar = ({
     // setHtmlTasks(newContent);
   };
 
+  const handleBlur = useCallback(() => {
+    if (editorRef.current) {
+      const editorContent = editorRef.current.value;
+      setContent(editorContent);
+      console.log('Editor content on blur:', editorContent);
+    }
+  }, []);
+
+  const handleEditorInit = useCallback((editor) => {
+    editorRef.current = editor;
+  }, []);
+
+  const calculateStatus = async (currentUser,reqStatus, percentComplete) => {
+    if (percentComplete >= 100) {
+      return 'Completed';
+    }
+
+    if (currentUser) {
+      if (reqStatus === 'Request') {
+       if (currentUser.role === 'PM') {
+
+         if (assigneeId)  {
+           return 'Assigned';
+         } else {
+           return 'Viewed';
+         }
+
+        } else {
+          return 'Request';
+        }
+
+
+      }
+      else if (reqStatus === 'Viewed') {
+
+        if (currentUser.role === 'PM') {
+          if (assigneeId)  {
+            return 'Assigned';
+          } else {
+            return 'Viewed';
+          }
+        }
+
+      }
+
+
+    }
+
+    return reqStatus;
+    };
+
 
   const handleSave = async () => {
     setIsSaving(true);
     setError(null);
     console.log(tasks);
+    console.log('Content on submit:', editorRef);
+    let  finalInstructions = instructions;
+    if (editorRef.current) {
+       finalInstructions = editorRef.current.value;
+      console.log('Final content on submit:', finalContent);
+    }
+
+    const percentComplete = await calculateTaskCompletionPercentage(tasks);
+    const maybeUpdateStatus = await calculateStatus(currentUser,reqStatus, percentComplete);
     const updatedData = {
       title,
       assigneeType,
-      status: reqStatus,
+      status: maybeUpdateStatus,
       assigneeId: assigneeId,
       assignee: { connect: { id: assigneeId } },
       assignedById: currentUser.id,
       assignedBy: { connect: { id: currentUser.id} },
       requestAIProcessed: aiContent,
       requestOriginal: originalRequest,
-      requestIntro: instructions,
+      requestIntro: finalInstructions || instructions,
       requestOutro: notes,
       completedTasks: postData.completedTasks,
+      tasks: tasks,
+      percentComplete: percentComplete,
       productTags: selectedProducts.map(option => option.value),
       dueAfterTime: {      
           timeNumber: dueAfterTimeNumber,
@@ -423,11 +501,14 @@ const RequestEditSidebar = ({
                 </Dialog.Title>
                 <div className="mt-2">
 
-                  <CustomJoditEditor
-                      value={localContent}
-                      tabIndex={1}
-                      handelBlur={(newContent) => setLocalContent(newContent)}
-                  />
+                  {/*<CustomJoditEditor*/}
+                  {/*    value={localContent}*/}
+                  {/*    tabIndex={1}*/}
+                  {/*    onChange={handleEditorChange}*/}
+                  {/*    onBlur={handleEditorBlur}*/}
+                  {/*    handleEditorInit={handleEditorInit}*/}
+                  {/*    editorRef={editorRef}*/}
+                  {/*/>*/}
                 </div>
 
                 <div className="mt-6 flex justify-end space-x-3">
@@ -455,301 +536,6 @@ const RequestEditSidebar = ({
     )
   };
 
-  const TasksEditor = ({isOpen, setIsOpen, requestId, tasks, setTasks, setInstructions, instructions}) => {
-    const [localTasks, setLocalTasks] = useState(tasks || []);
-    const [localInstructions, setLocalInstructions] = useState(instructions || '');
-    const [isSaving, setIsSaving] = useState(false);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-      console.log("TasksEditor tasks:", tasks);
-      setLocalTasks(tasks);
-    }, [tasks]);
-
-    const handleTaskChange = (taskId, field, value) => {
-      setLocalTasks(prevTasks => 
-        prevTasks.map(task => 
-          task.id === taskId
-            ? { 
-                ...task, 
-                [field]: field === "completedAt" 
-                  ? (value ? new Date() : null) 
-                  : value 
-              }
-            : task
-        )
-      );
-    };
-  
-    const addTask = () => {
-      const newTask = {
-        id: `temp-${Date.now()}`,
-        title: "",
-        taskText: "",
-        completedAt: null,
-      };
-      setLocalTasks(prevTasks => [...prevTasks, newTask]);
-    };
-  
-    const removeTask = (taskId) => {
-      setLocalTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    };
-  
-    const saveTasks = async () => {
-      setIsSaving(true);
-      setError(null);
-  
-      try {
-        const newTasks = localTasks.filter((task) => task.id.startsWith("temp-"));
-        const updatedTasks = localTasks.filter((task) => !task.id.startsWith("temp-"));
-        const deletedTaskIds = tasks
-          .filter((task) => !localTasks.some((localTask) => localTask.id === task.id))
-          .map((task) => task.id);
-  
-        if (newTasks.length > 0) {
-          const result = await createTasks(newTasks.map((task) => ({ requestId, ...task })));
-  
-          if (result.success && Array.isArray(result.data)) {
-            setLocalTasks((prevTasks) =>
-              prevTasks.map((task) =>
-                task.id.startsWith("temp-")
-                  ? result.data.find((t) => t.title === task.title && t.taskText === task.taskText) || task
-                  : task
-              )
-            );
-          } else {
-            console.error("Failed to create tasks:", result.error || "Unknown error");
-            setError("Failed to create new tasks. Please try again.");
-            return;
-          }
-        }
-  
-        for (const task of updatedTasks) {
-          await updateTask(task.id, task);
-        }
-  
-        for (const taskId of deletedTaskIds) {
-          await deleteTask(taskId);
-        }
-  
-        setTasks(localTasks);
-        setInstructions(localInstructions);
-        setIsOpen(false);
-      } catch (err) {
-        console.error("Error in saveTasks:", err);
-        setError("Failed to save tasks. Please try again.");
-      } finally {
-        setIsSaving(false);
-      }
-    };
-
-    const handleInstructionsBlur = (newContent) => {
-      // console.log("New instructions:", newContent);
-      setLocalInstructions(newContent);
-    };
-  
-    return (
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog
-          as="div"
-          className="relative z-[9999999] !bg-[#111c43] rounded-lg"
-          onClose={() => setIsOpen(false)}
-        >
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
-  
-          <div className="fixed inset-0 overflow-y-auto">
-            <div className="flex min-h-full items-center justify-center p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
-              >
-                <Dialog.Panel
-                    className="w-full max-w-7xl transform overflow-hidden rounded-2xl text-gray-50 !bg-[#111c43] p-6 text-left align-middle shadow-xl transition-all">
-                  <Dialog.Title
-                      as="div"
-                      className="flex justify-between text-lg font-medium leading-6 text-gray-50 mb-4"
-                  >
-                    <div>Instructions & Tasks Editor</div>
-                    <div className=" w-1/2 flex justify-end space-x-3">
-
-
-                      <button
-                          onClick={saveTasks}
-                          disabled={isSaving}
-                          type="button"
-                          className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
-                              isSaving ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                      >
-                        {isSaving ? (
-                            <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
-                        ) : (
-                            <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
-                        )}
-                        {isSaving ? "Saving..." : "Update"}
-                      </button>
-
-
-                      <button
-                          onClick={() => setIsOpen(false)}
-                          type="button"
-                          className="mt-6 w-1/10 py-2 justify-center text-center ti-btn ti-btn-warning-full label-ti-btn !rounded-full"
-                      >
-                        <i className="ri-close-line label-ti-btn-icon me-2 !rounded-full"></i>
-                        Close
-                      </button>
-
-
-                    </div>
-                  </Dialog.Title>
-                  <div className="mt-2">
-
-                    <CustomJoditEditor
-                        value={localInstructions}
-                        tabIndex={1}
-                        handelBlur={handleInstructionsBlur}
-                        // onChange={(newContent) => setInstructions(newContent)}
-                        // onBlur={(newContent) => setInstructions(newContent)}
-                    />
-                  </div>
-                  <div className="mt-2 flex flex-col flex-wrap gap-6">
-                    {localTasks?.length > 0 && localTasks.map((task) => (
-                        <Disclosure key={task.id}>
-                          {({open}) => (
-                              <>
-                                <div className="w-full px-4 py-3 flex items-center justify-between text-left">
-                                  <div className="flex items-center space-x-3 text-[#111c34] flex-grow">
-                                    <input
-                                        type="checkbox"
-                                        checked={!!task.completedAt}
-                                        onChange={(e) => handleTaskChange(task.id, "completedAt", e.target.checked)}
-                                        className="w-5 h-5 rounded bg-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <input
-                                        type="text"
-                                        value={task.title}
-                                        onChange={(e) => handleTaskChange(task.id, 'title', e.target.value)}
-                                        placeholder="Task title"
-                                        className="flex-grow bg-white rounded-lg text-grey-700 border-none focus:outline-none focus:ring-0"
-                                    />
-                                  </div>
-                                  <div className="flex items-center space-x-2">
-                                    <button
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          removeTask(task.id);
-                                        }}
-                                        className="p-1 text-gray-400 hover:text-red-500 focus:outline-none"
-                                    >
-                                      <FaTrash className="w-4 h-4"/>
-                                    </button>
-                                    <Disclosure.Button
-                                        className="focus:outline-none focus-visible:ring focus-visible:ring-blue-500 focus-visible:ring-opacity-75">
-                                      <FaChevronUp
-                                          className={`${
-                                              open ? 'transform rotate-180' : ''
-                                          } w-4 h-4 text-gray-500`}
-                                      />
-                                    </Disclosure.Button>
-                                  </div>
-                                </div>
-                                <Transition
-                                    enter="transition duration-100 ease-out"
-                                    enterFrom="transform scale-95 opacity-0"
-                                    enterTo="transform scale-100 opacity-100"
-                                    leave="transition duration-75 ease-out"
-                                    leaveFrom="transform scale-100 opacity-100"
-                                    leaveTo="transform scale-95 opacity-0"
-                                >
-                                  <Disclosure.Panel className="px-4 pb-3 ml-5 mr-5">
-                                     <textarea
-                                         value={task.taskText}
-                                         onChange={(e) => handleTaskChange(task.id, 'taskText', e.target.value)}
-                                         placeholder="Task details"
-                                         className="w-full mt-1 ml-3  px-3 py-2 text-[#111c34] border rounded-lg focus:outline-none focus:border-blue-500"
-                                         rows="3"
-                                     />
-                                  </Disclosure.Panel>
-                                </Transition>
-                              </>
-                          )}
-                        </Disclosure>
-                    ))}
-
-                    <div className="flex justify-end space-x-3 w-full">
-
-
-                      <button
-                          onClick={addTask}
-                          type="button"
-                          className="mt-6 w-1/10 py-2 justify-center text-center ti-btn ti-btn-info-full label-ti-btn !rounded-full"
-                      >
-                        <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>
-                        Add Task
-                      </button>
-
-
-
-
-                      <button
-                          onClick={saveTasks}
-                          disabled={isSaving}
-                          type="button"
-                          className={`mt-6 w-1/5 py-2 justify-center text-center ti-btn ti-btn-primary-full label-ti-btn !rounded-full ${
-                              isSaving ? "opacity-50 cursor-not-allowed" : ""
-                          }`}
-                      >
-                        {isSaving ? (
-                            <i className="ri-loader-2-fill text-[1rem] animate-spin"></i>
-                        ) : (
-                            <i className="ri-save-line label-ti-btn-icon me-2 !rounded-full"></i>
-                        )}
-                        {isSaving ? "Saving..." : "Update"}
-                      </button>
-
-
-                      <button
-                          onClick={() => setIsOpen(false)}
-                          type="button"
-                          className="mt-6 w-1/10 py-2 justify-center text-center ti-btn ti-btn-warning-full label-ti-btn !rounded-full"
-                      >
-                        <i className="ri-close-line label-ti-btn-icon me-2 !rounded-full"></i>
-                      Close
-                      </button>
-
-
-
-                    </div>
-                  </div>
-                  {error && (
-                      <div className="mt-4 text-red-500 bg-red-100 p-2 rounded-md">
-                        {error}
-                      </div>
-                  )}
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
-    );
-  };
 
   const handleClose = (user, setIsVisible, data) => {
     console.log(data, user);
@@ -926,70 +712,25 @@ const RequestEditSidebar = ({
                 </div>
 
                 <div>
-                  {/*<label className="block text-sm font-medium text-gray-50 mb-1">*/}
-                  {/*  Original Request*/}
-                  {/*</label>*/}
-                  {/*<textarea*/}
-                  {/*  value={originalRequest}*/}
-                  {/*  onChange={(e) => setOriginalRequest(e.target.value)}*/}
-                  {/*  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"*/}
-                  {/*  rows={4}*/}
-                  {/*/>*/}
+
                   <label className="block text-sm font-medium text-gray-50 mb-1">
                     Summary
                   </label>
                   <CustomJoditEditor
+                      ref={editorRef}
                       value={instructions}
                       tabIndex={1}
-                      handelBlur={(newContent) => setInstructions(newContent)}
+                      onBlur={newContent => setInstructions(newContent)}
+                      handleEditorInit={handleEditorInit}
                   />
                   <label className="block text-sm font-medium text-gray-50 mb-1">
                     Instructions
                   </label>
-                  {/*<CustomJoditEditor*/}
-                  {/*    value={htmlTasks}*/}
-                  {/*    tabIndex={1}*/}
-                  {/*    onChange={(newContent) => handleHtmlTasksChange(newContent)}*/}
-                  {/*    // handelBlur={(newContent) => handleHtmlTasksChange(newContent)}*/}
-                  {/*/>*/}
-                  <TaskListWithCheckboxes tasks={tasks} />
+
+                  <TaskListWithCheckboxes tasks={tasks} setTasks={setTasks} />
                 </div>
                 <div className="flex flex-row space-x-4 justify-around mt-24">
-                  {/*<button*/}
-                  {/*  onClick={() => setIsInstructionsEditorOpen(true)}*/}
-                  {/*  type="button"*/}
-                  {/*  className="ti-btn ti-btn-warning-full label-ti-btn !rounded-full"*/}
-                  {/*>*/}
-                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
-                  {/*  Instructions*/}
-                  {/*</button>*/}
 
-                  {/*<button*/}
-                  {/*  onClick={() => setIsTasksEditorOpen(true)}*/}
-                  {/*  type="button"*/}
-                  {/*  className="w-1/2 ti-btn ti-btn-info-full label-ti-btn !rounded-full"*/}
-                  {/*>*/}
-                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
-                  {/*  Instructions & Tasks Editor*/}
-                  {/*</button>*/}
-
-                  {/*<button*/}
-                  {/*  onClick={() => setIsNotesEditorOpen(true)}*/}
-                  {/*  type="button"*/}
-                  {/*  className="ti-btn ti-btn-success-full label-ti-btn !rounded-full"*/}
-                  {/*>*/}
-                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
-                  {/*  Notes*/}
-                  {/*</button>*/}
-
-                  {/*<button*/}
-                  {/*    onClick={() => setIsAIEditorOpen(true)}*/}
-                  {/*    type="button"*/}
-                  {/*    className="w-1/2 ti-btn ti-btn-primary-full label-ti-btn !rounded-full"*/}
-                  {/*>*/}
-                  {/*  <i className="ri-edit-line label-ti-btn-icon me-2 !rounded-full"></i>*/}
-                  {/*  Instructions & Tasks Editor*/}
-                  {/*</button>*/}
                   <button
                       onClick={handleSave}
                       disabled={isSaving}
@@ -1012,39 +753,6 @@ const RequestEditSidebar = ({
           </div>
         </Transition>
 
-        {/*<EditorPopup*/}
-        {/*  isOpen={isInstructionsEditorOpen}*/}
-        {/*  setIsOpen={setIsInstructionsEditorOpen}*/}
-        {/*  content={instructions}*/}
-        {/*  setContent={setInstructions}*/}
-        {/*  title="Edit Instructions"*/}
-        {/*/>*/}
-
-        {/*<EditorPopup*/}
-        {/*  isOpen={isNotesEditorOpen}*/}
-        {/*  setIsOpen={setIsNotesEditorOpen}*/}
-        {/*  content={notes}*/}
-        {/*  setContent={setNotes}*/}
-        {/*  title="Edit Notes"*/}
-      {/*/>*/}
-
-<EditorPopup
-        isOpen={isAIEditorOpen}
-        setIsOpen={setIsAIEditorOpen}
-        content={aiContent}
-        setContent={setAiContent}
-        title="Request Editor"
-      />
-
-<TasksEditor
-        isOpen={isTasksEditorOpen}
-        setIsOpen={setIsTasksEditorOpen}
-        requestId={postData.id}
-        tasks={tasks}
-        setTasks={setTasks}
-        instructions={instructions}
-        setInstructions={setInstructions}
-      />
     </>
   );
 };
