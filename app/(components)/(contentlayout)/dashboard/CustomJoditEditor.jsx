@@ -11,7 +11,7 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
 
   
 
-  const CustomJoditEditor = ({ value, handelBlur, setContent = () => null, onChange= () => null }) => {
+  const CustomJoditEditor = ({ value, handelBlur, setContent , onChange, handleEditorInit, ref }) => {
       const configJot = {
           readonly: false,
           toolbar: true,
@@ -84,10 +84,20 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
               //   console.log('Clicked element:', e.target);
               // },
 
+              change: function(e) {
+                  console.log('Content changed', e);
+                  // setContent(e.target.innerHTML);
+                  if (onChange) {
+                    // onChange(e.target.innerHTML);
+                  }
+              },
+
               blur: function(e) {
                   console.log('Content blurred', e.target.innerHTML);
                   // setContent(e.target.innerHTML);
-                  handelBlur(e.target.innerHTML);
+                  if (handelBlur) {
+                    // handelBlur(e.target.innerHTML);
+                  }
               },
 
           }
@@ -98,9 +108,10 @@ const JoditEditor = dynamic(() => import("jodit-react"), {
         <JoditEditor
           value={value}
           config={configJot}
+          onInit={handleEditorInit}
+          ref={ref}
 
-          onChange={onChange}
-          setContent={setContent}
+
 
 
 

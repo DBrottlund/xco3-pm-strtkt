@@ -19,6 +19,7 @@ import { useSessionContext } from "@/app/(components)/(contentlayout)/layout";
 import calculateFutureDate from "./calculateFutureDate";
 import calculateWorkHoursPassed from "./calculateWorkHoursPassed";
 import CustomJoditEditor from "./CustomJoditEditor";
+import TaskListWithCheckboxes from "./TasksListWithCheckboxes";
 
 
 const Select = dynamic(() => import("react-select"), { ssr: false });
@@ -235,11 +236,11 @@ const RequestEditSidebar = ({
   };
 
   const handleHtmlTasksChange = (newContent) => {
-    const tasks = htmlToTasks(newContent);
-    console.log('handleHtmlTasksChange',tasks);
+    // const tasks = htmlToTasks(newContent);
+    // console.log('handleHtmlTasksChange',tasks);
     console.log('handleHtmlTasksChange',newContent);
-    setTasks(tasks);
-    setHtmlTasks(newContent);
+    // setTasks(tasks);
+    // setHtmlTasks(newContent);
   };
 
 
@@ -945,11 +946,13 @@ const RequestEditSidebar = ({
                   <label className="block text-sm font-medium text-gray-50 mb-1">
                     Instructions
                   </label>
-                  <CustomJoditEditor
-                      value={htmlTasks}
-                      tabIndex={1}
-                      handelBlur={(newContent) => handleHtmlTasksChange(newContent)}
-                  />
+                  {/*<CustomJoditEditor*/}
+                  {/*    value={htmlTasks}*/}
+                  {/*    tabIndex={1}*/}
+                  {/*    onChange={(newContent) => handleHtmlTasksChange(newContent)}*/}
+                  {/*    // handelBlur={(newContent) => handleHtmlTasksChange(newContent)}*/}
+                  {/*/>*/}
+                  <TaskListWithCheckboxes tasks={tasks} />
                 </div>
                 <div className="flex flex-row space-x-4 justify-around mt-24">
                   {/*<button*/}
