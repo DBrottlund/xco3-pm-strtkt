@@ -336,6 +336,7 @@ export async function createTasks(tasks) {
         OR: tasksToCreate.map(task => ({
           title: task.title,
           taskText: task.taskText,
+          position: task.position,
           requestId: task.requestId
         }))
       }
@@ -473,12 +474,15 @@ export async function findTasks(htmlContent = '', requestId = '') {
     return [];
   }
 
-  const tasks = Array.from(taskList.children).map((li) => {
+  const tasks = Array.from(taskList.children).map((li, index) => {
     const titleElement = li.querySelector('strong');
-    const title = titleElement ? titleElement.textContent : '';
+    console.log('*****> titleElement', titleElement);
+    const title = titleElement ? titleElement.textContent.trim() : '';
+    console.log('*****> title', title);
+    const position = index + 1;
 
     // Remove the title from the text content
-    let taskText = li.textContent || '';
+    let taskText = li.textContent.trim() || '';
     if (title) {
       taskText = taskText.replace(title, '').trim();
     }
@@ -486,7 +490,7 @@ export async function findTasks(htmlContent = '', requestId = '') {
     // Remove the bullet points and nested list items
     taskText = taskText.replace(/^[•\-]\s*/gm, '').trim();
 
-    return { title, taskText, requestId };
+    return { title, taskText, position, requestId };
   });
 
   return tasks;
@@ -494,6 +498,7 @@ export async function findTasks(htmlContent = '', requestId = '') {
 
 export async function createAiTasksAction(html, requestId) {
   const tasks = await findTasks(html, requestId);
+  console.log('findTasks', tasks);
   createTasks(tasks);
 
 }
